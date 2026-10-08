@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>电功公式交互演示 · W = UIt · PowerPoint</title>
+<script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+<style>
+:root{
+  --bg:#eef3fa; --panel:#ffffff; --panel2:#f7fafd; --panel3:#f2f7ff;
+  --ink:#152238; --ink2:#41506b; --muted:#7b89a2;
+  --line:#d9e3f1; --line2:#eaf0f9;
+  --blue:#1d5fbf; --blue-d:#12408a; --blue-l:#e8f1ff;
+  --cyan:#0e8f8f; --amber:#d9861a; --red:#cf3b3b; --green:#1c8a52;
+  --shadow:0 6px 22px rgba(21,50,95,.08);
+  --r:14px;
+  --zh:"华文新魏","STXinwei","楷体",serif;
+  --base:"微软雅黑","Microsoft YaHei",Arial,sans-serif;
+  --latin:Arial,Helvetica,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  background:radial-gradient(1300px 620px at 50% -12%,#ffffff 0%,var(--bg) 62%);
+  color:var(--ink); font-family:var(--base); font-size:16px; overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+button,select,input{font-family:inherit}
+.num{font-family:var(--latin);font-variant-numeric:tabular-nums;letter-spacing:.2px}
+.cn{font-family:var(--zh);letter-spacing:1px}
+i.v{font-family:var(--latin);font-style:italic;font-weight:600;padding:0 1px}
+
+#app{height:100%;display:flex;flex-direction:column}
+
+/* ======== 顶栏 ======== */
+#topbar{
+  display:flex;align-items:center;gap:18px;padding:10px 20px;
+  background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);
+  border-bottom:1px solid var(--line);box-shadow:0 2px 10px rgba(21,50,95,.05);
+  flex:0 0 auto;z-index:20;
+}
+.brand{display:flex;align-items:center;gap:11px;flex:0 0 auto}
+.logo{
+  width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:22px;
+  background:linear-gradient(145deg,#2d76d6,#12408a);color:#fff;box-shadow:0 5px 14px rgba(29,95,191,.32);
+}
+.h1{font-size:21px;line-height:1.15;font-family:var(--zh);letter-spacing:2px;white-space:nowrap}
+.h2{font-size:11.5px;color:var(--muted);letter-spacing:.6px;margin-top:2px;white-space:nowrap}
+#tabs{display:flex;gap:7px;flex:1 1 auto;justify-content:center;flex-wrap:nowrap;overflow:hidden}
+.tabbtn{
+  border:1px solid var(--line);background:#fff;color:var(--ink2);
+  padding:8px 14px;border-radius:999px;font-size:13.5px;cursor:pointer;white-space:nowrap;
+  transition:.16s;line-height:1;letter-spacing:.4px;
+}
+.tabbtn:hover{border-color:#a9c4e8;color:var(--blue);background:var(--blue-l)}
+.tabbtn.on{background:linear-gradient(145deg,#2d76d6,#12408a);border-color:#12408a;color:#fff;box-shadow:0 4px 12px rgba(29,95,191,.28)}
+.tools{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.tools button{
+  border:1px solid var(--line);background:#fff;color:var(--ink2);border-radius:9px;
+  height:32px;min-width:32px;padding:0 10px;font-size:13px;cursor:pointer;transition:.15s;
+}
+.tools button:hover{border-color:#a9c4e8;color:var(--blue);background:var(--blue-l)}
+.tools button.primary{background:linear-gradient(145deg,#e0912a,#c2740f);border-color:#c2740f;color:#fff;box-shadow:0 4px 12px rgba(217,134,26,.3)}
+.tools button.primary:hover{color:#fff;background:linear-gradient(145deg,#e79a33,#cf7d13)}
+#zoomVal{font-size:12.5px;color:var(--muted);width:42px;text-align:center}
+
+/* ======== 舞台 ======== */
+#viewport{flex:1 1 auto;overflow:auto;padding:14px 18px 16px}
+#stage{width:100%}
+section.tab{display:none;animation:fade .32s ease both}
+section.tab.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.grid2{display:grid;grid-template-columns:minmax(0,1.22fr) minmax(0,1fr);gap:14px}
+.grid2eq{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+@media(max-width:1080px){.grid2,.grid2eq{grid-template-columns:minmax(0,1fr)}}
+
+.panel{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--shadow);padding:13px 15px;position:relative;
+}
+.phead{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.phead .dot{width:8px;height:8px;border-radius:50%;background:var(--blue);flex:0 0 auto}
+.phead h3{margin:0;font-size:16.5px;font-family:var(--zh);letter-spacing:1.6px;font-weight:400}
+.phead .tip{margin-left:auto;font-size:11.5px;color:var(--muted)}
+
+/* ======== 电路图 ======== */
+#circuit{width:100%;height:auto;display:block;border-radius:10px;background:
+  radial-gradient(circle at 30% 20%,#ffffff 0%,#f7fafd 70%)}
+.pillbar{display:flex;gap:7px;margin-bottom:9px;flex-wrap:wrap}
+.pill{
+  border:1px solid var(--line);background:#fff;color:var(--ink2);border-radius:999px;
+  padding:6px 14px;font-size:13.5px;cursor:pointer;transition:.15s;line-height:1.2;
+}
+.pill:hover{border-color:#a9c4e8;color:var(--blue)}
+.pill.on{background:var(--blue-l);border-color:#8fb6e6;color:var(--blue-d);font-weight:600;box-shadow:inset 0 0 0 1px #cfe1f8}
+.ctrlrow{display:flex;align-items:center;gap:9px;margin-top:9px;flex-wrap:wrap}
+.btn{
+  border:1px solid var(--line);background:#fff;color:var(--ink2);border-radius:10px;height:36px;
+  padding:0 16px;font-size:14px;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:6px;
+}
+.btn:hover{border-color:#a9c4e8;color:var(--blue);background:var(--blue-l)}
+.btn.go{background:linear-gradient(145deg,#2d76d6,#12408a);border-color:#12408a;color:#fff;box-shadow:0 4px 12px rgba(29,95,191,.28)}
+.btn.go:hover{color:#fff;background:linear-gradient(145deg,#357fe0,#154a9c)}
+.btn.warn{background:linear-gradient(145deg,#d9503f,#b8331f);border-color:#b8331f;color:#fff}
+.btn.warn:hover{color:#fff}
+.btn.small{height:30px;padding:0 12px;font-size:12.5px}
+select.mini{border:1px solid var(--line);border-radius:9px;height:34px;padding:0 8px;font-size:13.5px;color:var(--ink2);background:#fff}
+
+/* 时间进度 */
+.timerow{margin-top:10px}
+.timerow .lab{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:5px}
+.track{height:9px;border-radius:6px;background:#e6eef9;overflow:hidden;border:1px solid #dbe6f5}
+.track>i{display:block;height:100%;width:0;background:linear-gradient(90deg,#4a92e8,#12408a);transition:width .06s linear}
+
+/* ======== 数值与公式 ======== */
+.fbox{
+  background:linear-gradient(160deg,#f8fbff,#eef5ff);border:1px solid #d5e4f8;border-radius:12px;
+  padding:12px 14px;text-align:center;margin-bottom:11px;
+}
+.fbig{font-size:38px;line-height:1.1;color:var(--blue-d);font-family:var(--latin);font-weight:600;letter-spacing:1px}
+.fsub{margin-top:5px;font-size:17px;color:var(--ink2);font-family:var(--latin)}
+.fsub em{color:var(--red);font-style:normal;font-weight:700}
+.outs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:11px}
+.out{background:#fff;border:1px solid var(--line);border-radius:10px;padding:7px 8px;text-align:center}
+.out span{display:block;font-size:11.5px;color:var(--muted);margin-bottom:3px;white-space:nowrap}
+.out b{font-size:17px;color:var(--blue-d);font-family:var(--latin)}
+.out.hi b{color:var(--red)}
+
+.sld{margin:11px 0}
+.sld .top{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
+.sld .top .nm{font-size:13.5px;color:var(--ink2);font-family:var(--zh);letter-spacing:1px}
+.sld .top .val{margin-left:auto;font-family:var(--latin);font-size:17px;color:var(--blue-d);font-weight:700}
+.sld .top .unit{font-size:11.5px;color:var(--muted)}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;height:22px;background:transparent;cursor:pointer;
+}
+input[type=range]::-webkit-slider-runnable-track{
+  height:8px;border-radius:6px;background:linear-gradient(90deg,#a9c9ee,#dce8f7);border:1px solid #cadcf1;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:22px;height:22px;border-radius:50%;margin-top:-8px;
+  background:radial-gradient(circle at 34% 30%,#5ba0ee,#12408a);border:2.5px solid #fff;
+  box-shadow:0 2px 7px rgba(18,64,138,.4);
+}
+input[type=range]:disabled::-webkit-slider-thumb{background:#c3cddc;box-shadow:none}
+input[type=number],input[type=text]{
+  border:1px solid var(--line);border-radius:9px;height:34px;padding:0 9px;font-size:15px;
+  font-family:var(--latin);color:var(--ink);width:100%;background:#fff;
+}
+input[type=number]:focus,input[type=text]:focus{outline:none;border-color:#8fb6e6;box-shadow:0 0 0 3px #e8f1ff}
+
+/* 电能表 */
+.meter{display:flex;align-items:center;gap:12px;background:var(--panel3);border:1px solid #d8e6f9;border-radius:12px;padding:10px 12px;margin-top:11px}
+.disc{width:52px;height:52px;border-radius:50%;flex:0 0 auto;position:relative;
+  background:conic-gradient(from 0deg,#ffffff,#dce8f8,#ffffff,#dce8f8,#ffffff);
+  border:2px solid #b9cbe6;box-shadow:inset 0 0 8px rgba(29,95,191,.12)}
+.disc i{position:absolute;left:50%;top:6px;width:3px;height:20px;background:var(--blue);border-radius:2px;transform:translateX(-50%);display:block}
+.mtxt{flex:1 1 auto;min-width:0}
+.mtxt .l1{font-size:12px;color:var(--muted);margin-bottom:3px}
+.mtxt .l2{font-size:19px;font-family:var(--latin);color:var(--blue-d);font-weight:700}
+.mtxt .l3{font-size:11.5px;color:var(--muted);margin-top:3px}
+
+.note{
+  margin-top:11px;border-left:4px solid var(--cyan);background:#effaf9;border-radius:0 10px 10px 0;
+  padding:9px 12px;font-size:13.5px;color:#0c5f5f;line-height:1.6;
+}
+.note b{color:#0a4c4c}
+.note.amber{border-left-color:var(--amber);background:#fff8ec;color:#8a5a12}
+.note.amber b{color:#6f4708}
+.note.red{border-left-color:var(--red);background:#fdf1f0;color:#8f2b22}
+.note.red b{color:#7a231b}
+.note.blue{border-left-color:var(--blue);background:var(--blue-l);color:#12408a}
+.note.blue b{color:#0e336e}
+.note.green{border-left-color:var(--green);background:#eefaf3;color:#14603c}
+.note.green b{color:#0f4c2f}
+
+/* 结论条 */
+.concl{
+  margin-top:14px;display:flex;align-items:center;gap:14px;
+  background:linear-gradient(120deg,#12408a,#2d76d6 55%,#1a89a8);
+  color:#fff;border-radius:var(--r);padding:13px 20px;box-shadow:0 6px 20px rgba(18,64,138,.24);
+}
+.concl .k{font-family:var(--zh);font-size:17px;letter-spacing:2px;flex:0 0 auto;border-right:1px solid rgba(255,255,255,.35);padding-right:14px}
+.concl .t{font-size:14.5px;line-height:1.6;letter-spacing:.4px}
+.concl .t i.v{color:#ffe08a}
+
+/* 卡片 */
+.cards{display:grid;gap:10px}
+.cards.c3{grid-template-columns:repeat(3,1fr)}
+.cards.c2{grid-template-columns:repeat(2,1fr)}
+.cards.c4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:1080px){.cards.c4{grid-template-columns:repeat(2,1fr)}}
+.card{
+  background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 13px;transition:.18s;
+}
+.card:hover{border-color:#a9c4e8;box-shadow:0 6px 16px rgba(29,95,191,.1);transform:translateY(-2px)}
+.card .ct{font-family:var(--zh);font-size:15px;letter-spacing:1.2px;color:var(--blue-d);margin-bottom:6px}
+.card .cf{font-family:var(--latin);font-size:19px;color:var(--ink);margin-bottom:5px;font-weight:600}
+.card .cd{font-size:12.5px;color:var(--muted);line-height:1.55}
+.tag{display:inline-block;font-size:11px;padding:1.5px 8px;border-radius:999px;margin-left:6px;vertical-align:middle}
+.tag.g{background:#e7f7ee;color:#14603c;border:1px solid #bfe8d1}
+.tag.o{background:#fff3e0;color:#8a5a12;border:1px solid #f4dcb4}
+
+/* 表格 */
+table.t{width:100%;border-collapse:collapse;font-size:13.5px}
+table.t th,table.t td{border:1px solid var(--line);padding:7px 9px;text-align:center}
+table.t th{background:var(--panel3);color:var(--blue-d);font-family:var(--zh);letter-spacing:1px;font-weight:400;font-size:14px}
+table.t td.l{text-align:left}
+table.t tr:nth-child(even) td{background:#fbfdff}
+table.t .num{font-size:14.5px}
+
+/* 对比条 */
+.bars{margin-top:10px}
+.barrow{display:flex;align-items:center;gap:9px;margin-bottom:7px}
+.barrow .bl{width:78px;font-size:13px;color:var(--ink2);flex:0 0 auto;font-family:var(--latin)}
+.barrow .bt{flex:1 1 auto;height:22px;background:#eef4fc;border-radius:6px;overflow:hidden;border:1px solid #dfe9f6}
+.barrow .bt>i{display:block;height:100%;border-radius:5px;transition:width .35s cubic-bezier(.3,.8,.4,1)}
+.barrow .bv{width:120px;text-align:right;font-size:13.5px;font-family:var(--latin);color:var(--blue-d);flex:0 0 auto}
+
+/* 例题 */
+details.ex{border:1px solid var(--line);border-radius:12px;margin-bottom:9px;background:#fff;overflow:hidden}
+details.ex>summary{
+  cursor:pointer;padding:11px 14px;font-size:14.5px;color:var(--ink);list-style:none;
+  display:flex;align-items:center;gap:9px;transition:.15s;font-family:var(--zh);letter-spacing:1px;
+}
+details.ex>summary::-webkit-details-marker{display:none}
+details.ex>summary:hover{background:var(--blue-l)}
+details.ex>summary::before{
+  content:"▶";font-size:10px;color:var(--blue);transition:.2s;flex:0 0 auto;
+}
+details.ex[open]>summary::before{transform:rotate(90deg)}
+details.ex[open]>summary{background:var(--blue-l);border-bottom:1px solid var(--line)}
+details.ex .body{padding:11px 15px 13px;font-size:13.5px;line-height:1.85;color:var(--ink2)}
+details.ex .body .step{margin:3px 0}
+details.ex .body .step b{color:var(--ink)}
+details.ex .body .res{color:var(--red);font-weight:700;font-family:var(--latin)}
+.exno{background:var(--blue-d);color:#fff;font-size:11.5px;border-radius:6px;padding:2px 8px;font-family:var(--latin)}
+
+/* 演示模式字幕 */
+#caption{
+  position:fixed;left:50%;bottom:22px;transform:translate(-50%,140%);
+  background:rgba(13,32,64,.92);color:#fff;padding:12px 26px;border-radius:12px;font-size:17px;
+  letter-spacing:.6px;box-shadow:0 10px 30px rgba(0,0,0,.3);max-width:min(1000px,92vw);text-align:center;
+  transition:transform .4s cubic-bezier(.2,.9,.3,1);z-index:60;backdrop-filter:blur(6px);font-family:var(--zh);
+}
+#caption.on{transform:translate(-50%,0)}
+#caption .idx{color:#ffd166;font-family:var(--latin);margin-right:8px}
+
+/* 提示角标 */
+.kbd{display:inline-block;border:1px solid #c9d8ec;border-bottom-width:2px;border-radius:5px;padding:0 6px;font-size:11px;color:var(--muted);background:#f7fafd;font-family:var(--latin);margin:0 1px}
+.foot{display:flex;align-items:center;gap:10px;justify-content:center;margin-top:12px;font-size:11.5px;color:var(--muted);flex-wrap:wrap}
+.warnflash{animation:wf 1s infinite}
+@keyframes wf{0%,100%{opacity:1}50%{opacity:.45}}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important;transition:none !important}
+}
+
+/* ======== PowerPoint 内容加载项适配 ======== */
+body.ppt-host{background:#f4f7fb;}
+body.ppt-host #topbar{gap:10px;padding:7px 11px;}
+body.ppt-host .brand{gap:7px}
+body.ppt-host .logo{width:34px;height:34px;border-radius:9px;font-size:18px;}
+body.ppt-host .h1{font-size:17px;letter-spacing:1.3px}
+body.ppt-host .h2{display:none}
+body.ppt-host #tabs{gap:4px}
+body.ppt-host .tabbtn{padding:6px 9px;font-size:11.5px;}
+body.ppt-host .tools{gap:5px}
+body.ppt-host .tools button{height:28px;min-width:28px;padding:0 7px;font-size:11.5px;}
+body.ppt-host #zoomVal{width:36px;font-size:11px;}
+body.ppt-host #btnFull{display:none}
+body.ppt-host #viewport{padding:8px 10px 10px;}
+body.ppt-host .grid2,body.ppt-host .grid2eq{gap:10px;}
+body.ppt-host .panel{padding:9px 11px;border-radius:11px;}
+body.ppt-host .phead{gap:7px;margin-bottom:6px;}
+body.ppt-host .phead h3{font-size:14px;letter-spacing:1.1px;}
+body.ppt-host .phead .tip{font-size:10.5px}
+body.ppt-host .pillbar{gap:5px;margin-bottom:6px;}
+body.ppt-host .pill{padding:5px 10px;font-size:11.5px;}
+body.ppt-host .ctrlrow{gap:6px;margin-top:6px;}
+body.ppt-host .btn{height:31px;padding:0 11px;font-size:12px;}
+body.ppt-host .btn.small{height:27px;padding:0 9px;font-size:11px;}
+body.ppt-host select.mini{height:29px;font-size:11.5px;}
+body.ppt-host .timerow{margin-top:7px}
+body.ppt-host .fbox{padding:9px 11px;margin-bottom:7px;}
+body.ppt-host .fbig{font-size:29px}
+body.ppt-host .fsub{font-size:14px}
+body.ppt-host .outs{gap:6px;margin-top:7px}
+body.ppt-host .out{padding:5px 6px}
+body.ppt-host .out span{font-size:10px}
+body.ppt-host .out b{font-size:14px}
+body.ppt-host .sld{margin:7px 0}
+body.ppt-host .sld .top{margin-bottom:2px}
+body.ppt-host .sld .top .nm{font-size:11.5px}
+body.ppt-host .sld .top .val{font-size:14px}
+body.ppt-host .sld .top .unit{font-size:10px}
+body.ppt-host input[type=range]{height:18px}
+body.ppt-host input[type=range]::-webkit-slider-runnable-track{height:6px}
+body.ppt-host input[type=range]::-webkit-slider-thumb{width:18px;height:18px;margin-top:-7px;}
+body.ppt-host .meter{gap:9px;padding:7px 9px;margin-top:7px;}
+body.ppt-host .disc{width:42px;height:42px}
+body.ppt-host .disc i{top:5px;height:16px}
+body.ppt-host .mtxt .l1{font-size:10.5px}
+body.ppt-host .mtxt .l2{font-size:15px}
+body.ppt-host .mtxt .l3{font-size:10px}
+body.ppt-host .note{margin-top:7px;padding:7px 9px;font-size:11.5px;line-height:1.45;}
+body.ppt-host .concl{margin-top:9px;padding:9px 13px;gap:10px;border-radius:11px;}
+body.ppt-host .concl .k{font-size:14px;letter-spacing:1.4px;padding-right:10px;}
+body.ppt-host .concl .t{font-size:12px;line-height:1.45;}
+body.ppt-host .cards{gap:7px}
+body.ppt-host .card{padding:8px 10px;border-radius:10px;}
+body.ppt-host .card .ct{font-size:13px;margin-bottom:4px}
+body.ppt-host .card .cf{font-size:16px;margin-bottom:3px}
+body.ppt-host .card .cd{font-size:11px;line-height:1.4}
+body.ppt-host table.t{font-size:11.5px}
+body.ppt-host table.t th,body.ppt-host table.t td{padding:5px 6px}
+body.ppt-host details.ex>summary{padding:8px 10px;font-size:12px;}
+body.ppt-host details.ex .body{padding:8px 11px 10px;font-size:11.5px;line-height:1.6;}
+body.ppt-host .foot{display:none}
+body.ppt-host #caption{bottom:9px;padding:8px 14px;border-radius:9px;font-size:13px;max-width:94%;}
+@media(max-width:760px){
+  body.ppt-host .grid2,body.ppt-host .grid2eq{grid-template-columns:minmax(0,1fr)}
+}
+
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header id="topbar">
+    <div class="brand">
+      <div class="logo">⚡</div>
+      <div>
+        <div class="h1">电功公式交互演示</div>
+        <div class="h2">物理化学 · 电化学基础　|　电流做功 · 电能转化 · 公式变形</div>
+      </div>
+    </div>
+    <nav id="tabs">
+      <button class="tabbtn on" data-tab="0">① 核心公式</button>
+      <button class="tabbtn" data-tab="1">② 公式家族</button>
+      <button class="tabbtn" data-tab="2">③ 一度电</button>
+      <button class="tabbtn" data-tab="3">④ 电功率</button>
+      <button class="tabbtn" data-tab="4">⑤ 典型例题</button>
+      <button class="tabbtn" data-tab="5">⑥ 拓展·可逆电池</button>
+    </nav>
+    <div class="tools">
+      <button id="zoomOut" title="缩小">－</button>
+      <span id="zoomVal" class="num">100%</span>
+      <button id="zoomIn" title="放大">＋</button>
+      <button id="btnDemo" class="primary" title="自动播放讲解">▶ 演示模式</button>
+      <button id="btnFull" title="全屏放映">⛶</button>
+    </div>
+  </header>
+
+  <div id="viewport"><div id="stage">
+
+  <!-- ================= ① 核心公式 ================= -->
+  <section class="tab on" id="tab0">
+    <div class="grid2">
+      <div class="panel">
+        <div class="phead">
+          <span class="dot"></span><h3>实验演示：电流做功把砝码提起</h3>
+          <span class="tip">点击"通电"观察</span>
+        </div>
+        <div class="pillbar">
+          <button class="pill on" data-load="motor">电动机</button>
+          <button class="pill" data-load="heater">电炉（电阻丝）</button>
+          <button class="pill" data-load="lamp">灯泡</button>
+        </div>
+        <svg id="circuit" viewBox="0 0 560 330" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <filter id="fRed" x="-70%" y="-70%" width="240%" height="240%">
+              <feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <filter id="fYel" x="-70%" y="-70%" width="240%" height="240%">
+              <feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <radialGradient id="bulbG"><stop offset="0" stop-color="#fff5c2" stop-opacity="1"/><stop offset="1" stop-color="#ffd84d" stop-opacity="0"/></radialGradient>
+            <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M0 0 L10 5 L0 10 z" fill="#2d76d6"/>
+            </marker>
+          </defs>
+
+          <path id="wirePath" d="M 70 70 H 330 V 250 H 70 Z" fill="none" stroke="none"/>
+          <line x1="24" y1="300" x2="384" y2="300" stroke="#cfdcee" stroke-width="1.5" stroke-dasharray="6 6"/>
+          <text x="204" y="318" text-anchor="middle" font-size="11" fill="#9aa8c0" font-family="Arial">实验台面</text>
+
+          <!-- 导线（开关处留缺口） -->
+          <path d="M 70 70 H 180" fill="none" stroke="#42556f" stroke-width="4" stroke-linecap="round"/>
+          <path d="M 220 70 H 330 V 250 H 70 V 70" fill="none" stroke="#42556f" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+
+          <!-- 电流小球（画在元件符号之下） -->
+          <g id="dots"></g>
+
+          <!-- 电流方向 -->
+          <path d="M 96 46 h 26" stroke="#2d76d6" stroke-width="2.5" marker-end="url(#arrow)"/>
+          <text x="109" y="36" text-anchor="middle" font-size="12" fill="#2d76d6" font-family="Arial" font-style="italic">I</text>
+
+          <!-- 开关 -->
+          <rect x="170" y="52" width="66" height="36" rx="6" fill="#fff" opacity="0"/>
+          <circle cx="180" cy="70" r="4.5" fill="#42556f"/>
+          <circle cx="220" cy="70" r="4.5" fill="#42556f"/>
+          <line id="lever" x1="180" y1="70" x2="218" y2="66" stroke="#42556f" stroke-width="4.5" stroke-linecap="round"/>
+          <text x="200" y="42" text-anchor="middle" font-size="11.5" fill="#7b89a2" font-family="微软雅黑">开关</text>
+
+          <!-- 电源 -->
+          <rect x="44" y="124" width="52" height="80" rx="10" fill="#fff"/>
+          <line x1="50" y1="142" x2="90" y2="142" stroke="#12408a" stroke-width="4.5" stroke-linecap="round"/>
+          <line x1="60" y1="162" x2="80" y2="162" stroke="#12408a" stroke-width="9" stroke-linecap="round"/>
+          <line x1="70" y1="142" x2="70" y2="126" stroke="#12408a" stroke-width="2.5"/>
+          <line x1="70" y1="162" x2="70" y2="202" stroke="#12408a" stroke-width="2.5"/>
+          <text x="98" y="136" font-size="13" fill="#12408a" font-family="Arial">+</text>
+          <text x="98" y="172" font-size="15" fill="#12408a" font-family="Arial">−</text>
+          <text x="70" y="112" text-anchor="middle" font-size="12" fill="#12408a" font-family="Arial" font-style="italic">U</text>
+
+          <!-- 负载：电动机 -->
+          <g id="loadMotor">
+            <rect x="304" y="126" width="52" height="72" rx="10" fill="#fff"/>
+            <circle cx="330" cy="160" r="18" fill="#eaf2ff" stroke="#1d5fbf" stroke-width="3"/>
+            <text x="330" y="167" text-anchor="middle" font-size="19" fill="#12408a" font-family="Arial" font-weight="bold">M</text>
+          </g>
+          <!-- 负载：电炉 -->
+          <g id="loadHeater" style="display:none">
+            <rect x="304" y="126" width="52" height="72" rx="10" fill="#fff"/>
+            <rect x="317" y="134" width="26" height="52" rx="5" fill="#f6f8fb" stroke="#42556f" stroke-width="3"/>
+            <path id="coilOn" d="M 320 146 l 20 8 l -20 8 l 20 8 l -20 8" fill="none" stroke="#8e9bb0" stroke-width="3" stroke-linejoin="round"/>
+          </g>
+          <!-- 负载：灯泡 -->
+          <g id="loadLamp" style="display:none">
+            <rect x="304" y="126" width="52" height="72" rx="10" fill="#fff"/>
+            <circle cx="330" cy="160" r="18" fill="#fffbe8" stroke="#42556f" stroke-width="3"/>
+            <line x1="317" y1="147" x2="343" y2="173" stroke="#42556f" stroke-width="2.5"/>
+            <line x1="343" y1="147" x2="317" y2="173" stroke="#42556f" stroke-width="2.5"/>
+          </g>
+
+          <!-- 连线到效果区 -->
+          <line x1="360" y1="160" x2="396" y2="160" stroke="#b9cbe6" stroke-width="1.6" stroke-dasharray="5 5"/>
+          <text x="470" y="30" text-anchor="middle" font-size="12.5" fill="#7b89a2" font-family="微软雅黑">做功效果</text>
+
+          <!-- 效果：电动机提起砝码 -->
+          <g id="effMotor">
+            <circle cx="470" cy="96" r="26" fill="#eaf2ff" stroke="#1d5fbf" stroke-width="3"/>
+            <g id="rotor">
+              <line x1="470" y1="76" x2="470" y2="116" stroke="#3d7fd6" stroke-width="3" stroke-linecap="round"/>
+              <line x1="453" y1="87" x2="487" y2="105" stroke="#3d7fd6" stroke-width="3" stroke-linecap="round"/>
+              <line x1="487" y1="87" x2="453" y2="105" stroke="#3d7fd6" stroke-width="3" stroke-linecap="round"/>
+            </g>
+            <circle cx="470" cy="96" r="5" fill="#12408a"/>
+            <line id="rope" x1="470" y1="122" x2="470" y2="240" stroke="#a07b3c" stroke-width="3"/>
+            <g id="weight">
+              <rect x="446" y="240" width="48" height="34" rx="5" fill="#f0c069" stroke="#b8842e" stroke-width="2"/>
+              <text x="470" y="262" text-anchor="middle" font-size="13" fill="#7a5518" font-family="微软雅黑">砝码</text>
+            </g>
+            <text x="470" y="292" text-anchor="middle" font-size="11.5" fill="#9aa8c0" font-family="微软雅黑">电能 → 机械能</text>
+          </g>
+
+          <!-- 效果：电炉发热 -->
+          <g id="effHeater" style="display:none">
+            <ellipse cx="470" cy="252" rx="58" ry="14" fill="#e8eef8" stroke="#c9d8ec"/>
+            <path id="coilBig" d="M 416 190 L 430 158 L 444 202 L 458 158 L 472 202 L 486 158 L 500 202 L 514 158 L 524 190"
+                  fill="none" stroke="#8e9bb0" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+            <g id="heatWaves" opacity="0">
+              <path d="M 440 138 q 8 -12 0 -24 q -8 -12 0 -24" fill="none" stroke="#e59a3c" stroke-width="2.5"/>
+              <path d="M 470 132 q 8 -12 0 -24 q -8 -12 0 -24" fill="none" stroke="#e59a3c" stroke-width="2.5"/>
+              <path d="M 500 138 q 8 -12 0 -24 q -8 -12 0 -24" fill="none" stroke="#e59a3c" stroke-width="2.5"/>
+            </g>
+            <text x="470" y="288" text-anchor="middle" font-size="11.5" fill="#9aa8c0" font-family="微软雅黑">电能 → 内能</text>
+          </g>
+
+          <!-- 效果：灯泡发光 -->
+          <g id="effLamp" style="display:none">
+            <circle id="bulbGlow" cx="470" cy="160" r="86" fill="url(#bulbG)" opacity="0"/>
+            <g id="lampBody">
+              <rect x="446" y="222" width="48" height="18" rx="4" fill="#c8d2e0" stroke="#9aa8c0" stroke-width="2"/>
+              <rect x="450" y="236" width="40" height="8" rx="3" fill="#b3bfcf"/>
+              <circle cx="470" cy="160" r="56" fill="#fffcef" stroke="#9aa8c0" stroke-width="3"/>
+              <path d="M 452 186 q 9 -32 18 0 q 9 -32 18 0" fill="none" stroke="#c9a227" stroke-width="3.5" stroke-linecap="round"/>
+              <line x1="452" y1="190" x2="452" y2="220" stroke="#9aa8c0" stroke-width="2.5"/>
+              <line x1="488" y1="190" x2="488" y2="220" stroke="#9aa8c0" stroke-width="2.5"/>
+            </g>
+            <text x="470" y="288" text-anchor="middle" font-size="11.5" fill="#9aa8c0" font-family="微软雅黑">电能 → 内能与光能</text>
+          </g>
+        </svg>
+
+        <div class="ctrlrow">
+          <button id="runBtn" class="btn go">▶ 通电</button>
+          <button id="switchBtn" class="btn small">断开开关</button>
+          <button id="resetBtn" class="btn small">复位</button>
+          <span style="font-size:12.5px;color:var(--muted);margin-left:2px">演示速度</span>
+          <select id="speedSel" class="mini">
+            <option value="1">1× 真实</option>
+            <option value="2" selected>2×</option>
+            <option value="5">5×</option>
+            <option value="10">10×</option>
+          </select>
+        </div>
+
+        <div class="timerow">
+          <div class="lab"><span>通电时间 <i class="v">t</i></span><span id="tlabel" class="num">0.0 s / 10.0 s</span></div>
+          <div class="track"><i id="tbar"></i></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="phead"><span class="dot"></span><h3>公式与实时计算</h3><span class="tip">拖动滑块改变参数</span></div>
+        <div class="fbox">
+          <div class="fbig"><i class="v">W</i> = <i class="v">U</i><i class="v">I</i><i class="v">t</i></div>
+          <div class="fsub" id="subst">W = 220.0 V × 2.00 A × 10.0 s</div>
+          <div class="outs">
+            <div class="out"><span>电功 W</span><b id="outW">4.40×10³ J</b></div>
+            <div class="out"><span>折合</span><b id="outKwh">0.001222</b></div>
+            <div class="out hi"><span>电功率 P=UI</span><b id="outP">440.0 W</b></div>
+          </div>
+        </div>
+
+        <div class="sld">
+          <div class="top"><span class="nm">电压 U</span><span class="val" id="UVal">220.0</span><span class="unit">V（伏特）</span></div>
+          <input type="range" id="URange" min="1" max="380" step="1" value="220"/>
+        </div>
+        <div class="sld">
+          <div class="top"><span class="nm">电流 I</span><span class="val" id="IVal">2.00</span><span class="unit">A（安培）</span></div>
+          <input type="range" id="IRange" min="0.1" max="10" step="0.05" value="2"/>
+        </div>
+        <div class="sld">
+          <div class="top"><span class="nm">通电时间 t</span><span class="val" id="TVal">10.0</span><span class="unit">s（秒）</span></div>
+          <input type="range" id="tRange" min="1" max="120" step="1" value="10"/>
+        </div>
+
+        <div class="note blue" id="energyNote">
+          <b>能量转化：</b>电能 → 机械能（电动机）。电流做了多少功，就有多少电能转化为其他形式的能，能的总量不变。
+        </div>
+
+        <div class="meter">
+          <div class="disc" id="disc"><i></i></div>
+          <div class="mtxt">
+            <div class="l1">电能表读数（累计电功）</div>
+            <div class="l2" id="meterReading">0.000000 kW·h</div>
+            <div class="l3">转盘转速 ∝ 电功率 P —— 做功越快，转得越快</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="concl">
+      <div class="k">核心结论</div>
+      <div class="t">电流做功跟 <i class="v">电压</i>、<i class="v">电流</i>、<i class="v">通电时间</i> 成正比：<i class="v">W</i> = <i class="v">U</i><i class="v">I</i><i class="v">t</i> = <i class="v">P</i><i class="v">t</i> = <i class="v">U</i><i class="v">Q</i>　—— 电压越高、电流越大、通电时间越长，电流做的功越多。</div>
+    </div>
+  </section>
+
+  <!-- ================= ② 公式家族 ================= -->
+  <section class="tab" id="tab1">
+    <div class="grid2eq">
+      <div class="panel">
+        <div class="phead"><span class="dot"></span><h3>电功公式家族</h3><span class="tip">哪个公式都能用吗？</span></div>
+        <div class="cards c2">
+          <div class="card">
+            <div class="ct">通用式<span class="tag g">任何电路</span></div>
+            <div class="cf">W = U I t = P t</div>
+            <div class="cd">只要知道电压、电流、时间即可求电功，与用电器类型无关。</div>
+          </div>
+          <div class="card">
+            <div class="ct">定义式<span class="tag g">任何电路</span></div>
+            <div class="cf">W = U Q</div>
+            <div class="cd">U 是一单位电荷从 A 到 B 所做的功，Q 是通过的电荷量，Q = I t。</div>
+          </div>
+          <div class="card">
+            <div class="ct">变形一<span class="tag o">仅纯电阻</span></div>
+            <div class="cf">W = Q<sub>热</sub> = I²R t</div>
+            <div class="cd">由 U = IR 代入得，串联电路中常用（电流相同）。</div>
+          </div>
+          <div class="card">
+            <div class="ct">变形二<span class="tag o">仅纯电阻</span></div>
+            <div class="cf">W = Q<sub>热</sub> = U²t / R</div>
+            <div class="cd">由 I = U/R 代入得，并联电路中常用（电压相同）。</div>
+          </div>
+        </div>
+        <div class="note red" style="margin-top:12px">
+          <b>关键区别：</b>只有<b>纯电阻电路</b>（电炉、电灯、电阻丝，无电动机）中才有 <b>W = Q<sub>热</sub></b>；
+          含电动机等把电能转化为机械能、化学能的用电器时 <b>W &gt; Q<sub>热</sub></b>，此时只能用 W = UIt 求电功。
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="phead"><span class="dot"></span><h3>公式选用计算器</h3><span class="tip">选已知量，自动选公式</span></div>
+        <div class="pillbar" id="modeBar">
+          <button class="pill on" data-mode="uit">已知 U、I、t</button>
+          <button class="pill" data-mode="irt">已知 I、R、t</button>
+          <button class="pill" data-mode="urt">已知 U、R、t</button>
+        </div>
+        <div class="grid2eq" style="gap:9px">
+          <div><div class="l1" style="font-size:12px;color:var(--muted);margin-bottom:4px" id="inA1">电压 U / V</div><input type="number" id="inA" value="220" step="1"/></div>
+          <div><div class="l1" style="font-size:12px;color:var(--muted);margin-bottom:4px" id="inB1">电流 I / A</div><input type="number" id="inB" value="2" step="0.05"/></div>
+          <div><div class="l1" style="font-size:12px;color:var(--muted);margin-bottom:4px" id="inC1">通电时间 t / s</div><input type="number" id="inC" value="60" step="1"/></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn go" style="width:100%;justify-content:center" id="calcBtn">计 算 电 功</button></div>
+        </div>
+        <div class="fbox" style="margin-top:11px;margin-bottom:0">
+          <div class="fsub" id="mFormula" style="font-size:19px">W = U I t</div>
+          <div class="fsub num" id="mSubst" style="margin-top:6px;font-size:16px">= 220 V × 2 A × 60 s</div>
+          <div class="fbig" id="mOut" style="font-size:30px;margin-top:7px">2.64×10⁴ J</div>
+          <div class="fsub num" id="mKwh" style="font-size:14px;color:var(--muted)">≈ 0.007333 kW·h</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:14px">
+      <div class="phead"><span class="dot"></span><h3>串、并联电路中的电功分配</h3><span class="tip">同样通电，谁的功多？</span></div>
+      <div class="grid2eq">
+        <div>
+          <div class="pillbar">
+            <button class="pill on" data-cir="series">串联电路</button>
+            <button class="pill" data-cir="parallel">并联电路</button>
+          </div>
+          <div class="grid2eq" style="gap:9px">
+            <div><div style="font-size:12px;color:var(--muted);margin-bottom:4px">电阻 R₁ / Ω</div><input type="number" id="cR1" value="10" step="1"/></div>
+            <div><div style="font-size:12px;color:var(--muted);margin-bottom:4px">电阻 R₂ / Ω</div><input type="number" id="cR2" value="20" step="1"/></div>
+            <div><div style="font-size:12px;color:var(--muted);margin-bottom:4px" id="cUlab">电源电压 U / V</div><input type="number" id="cU" value="6" step="0.5"/></div>
+            <div><div style="font-size:12px;color:var(--muted);margin-bottom:4px">通电时间 t / s</div><input type="number" id="cT" value="10" step="1"/></div>
+          </div>
+          <div class="note green" id="cirNote" style="margin-top:11px">
+            <b>串联：</b>电流处处相等 I₁ = I₂ = I，故 W₁ : W₂ = R₁ : R₂ = U₁ : U₂。
+          </div>
+        </div>
+        <div>
+          <div class="bars">
+            <div class="barrow"><span class="bl">R₁ 电功 W₁</span><span class="bt"><i id="bar1" style="width:33%;background:linear-gradient(90deg,#4a92e8,#12408a)"></i></span><span class="bv" id="cOut1">4.00 J</span></div>
+            <div class="barrow"><span class="bl">R₂ 电功 W₂</span><span class="bt"><i id="bar2" style="width:66%;background:linear-gradient(90deg,#4ec5b8,#0e8f8f)"></i></span><span class="bv" id="cOut2">8.00 J</span></div>
+          </div>
+          <div class="outs" style="grid-template-columns:repeat(3,1fr)">
+            <div class="out"><span>W₁ : W₂</span><b id="cRatio">1 : 2</b></div>
+            <div class="out"><span>总电功 W</span><b id="cTotal">12.00 J</b></div>
+            <div class="out"><span>干路电流 I</span><b id="cI">0.200 A</b></div>
+          </div>
+          <div class="note blue" style="margin-top:11px">总电功等于各电功之和：W = W₁ + W₂（能量守恒）。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="concl">
+      <div class="k">选式口诀</div>
+      <div class="t">求电功一律可先用 <i class="v">W</i> = <i class="v">U</i><i class="v">I</i><i class="v">t</i>；纯电阻电路中再按"已知什么用什么"选择 <i class="v">I</i>²<i class="v">R</i><i class="v">t</i>（串联）或 <i class="v">U</i>²<i class="v">t</i>/<i class="v">R</i>（并联）。</div>
+    </div>
+  </section>
+
+  <!-- ================= ③ 一度电 ================= -->
+  <section class="tab" id="tab2">
+    <div class="grid2">
+      <div class="panel">
+        <div class="phead"><span class="dot"></span><h3>单位与换算</h3><span class="tip">焦耳 → 千瓦时</span></div>
+        <div class="fbox">
+          <div class="fbig" style="font-size:32px">1 kW·h = 3.6×10⁶ J = 1 度电</div>
+          <div class="fsub" style="font-size:14px;color:var(--muted);margin-top:6px">
+            1 kW·h = 1000 W × 3600 s = 3.6×10⁶ J　|　1 kW = 1000 W，1 W = 1000 mW
+          </div>
+        </div>
+        <div class="grid2eq" style="gap:12px">
+          <div>
+            <div style="font-size:12.5px;color:var(--muted);margin-bottom:5px">输入电功（度 / kW·h）</div>
+            <input type="number" id="kwhIn" value="1" step="0.1"/>
+            <div class="fsub num" style="margin-top:8px;font-size:15px;color:var(--blue-d)">= <b id="jOut">3.60×10⁶</b> J</div>
+          </div>
+          <div>
+            <div style="font-size:12.5px;color:var(--muted);margin-bottom:5px">输入电功（焦耳 J）</div>
+            <input type="number" id="jIn" value="3600000" step="1000"/>
+            <div class="fsub num" style="margin-top:8px;font-size:15px;color:var(--blue-d)">= <b id="kwhOut">1.000000</b> kW·h</div>
+          </div>
+        </div>
+        <div class="note amber" style="margin-top:12px">
+          <b>为什么用"度"？</b>焦耳这个单位太小，生活中用起来不方便。1 度电 = 1 kW·h，就是平常说的"用了几度电"的"度"，
+          技术中叫作<b>千瓦时</b>，符号 kW·h。
+        </div>
+        <div class="phead" style="margin-top:14px"><span class="dot" style="background:var(--cyan)"></span><h3 style="font-size:15px">电能表读数</h3></div>
+        <div class="grid2eq" style="gap:12px">
+          <div><div style="font-size:12.5px;color:var(--muted);margin-bottom:5px">前次读数 / kW·h</div><input type="number" id="m1" value="1234.5" step="0.1"/></div>
+          <div><div style="font-size:12.5px;color:var(--muted);margin-bottom:5px">本次读数 / kW·h</div><input type="number" id="m2" value="1240.2" step="0.1"/></div>
+        </div>
+        <div class="outs" style="margin-top:10px">
+          <div class="out"><span>本次用电</span><b id="mDiff">5.700 kW·h</b></div>
+          <div class="out"><span>折合电功</span><b id="mDiffJ">2.05×10⁷ J</b></div>
+          <div class="out"><span>相当于</span><b id="mDiffNote">5.7 度</b></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="phead"><span class="dot" style="background:var(--amber)"></span><h3>不要小看一度电</h3><span class="tip">1 kW·h 可以……</span></div>
+        <div class="cards c2">
+          <div class="card"><div class="ct">🛠 电炉炼钢</div><div class="cf">1.6 kg</div><div class="cd">高温电弧把废钢熔成钢水</div></div>
+          <div class="card"><div class="ct">⛏ 采掘原煤</div><div class="cf">105 kg</div><div class="cd">矿井下的机械作业</div></div>
+          <div class="card"><div class="ct">🚋 电车行驶</div><div class="cf">0.85 km</div><div class="cd">城市公共交通</div></div>
+          <div class="card"><div class="ct">🌾 灌溉农田</div><div class="cf">330 m²</div><div class="cd">水泵抽水浇地</div></div>
+          <div class="card"><div class="ct">🧺 洗衣机工作</div><div class="cf">2.7 h</div><div class="cd">普通家用波轮洗衣机</div></div>
+          <div class="card"><div class="ct">💻 电脑工作</div><div class="cf">5 h</div><div class="cd">台式计算机连续运行</div></div>
+        </div>
+        <div class="note green" style="margin-top:12px">
+          <b>节约每一度电：</b>1 度电的背后是燃料、水与排放。理解 W = UIt，也就理解了"功率越大、时间越长，耗电越多"，
+          这正是节能的逻辑起点。
+        </div>
+        <div class="note blue" style="margin-top:10px">
+          <b>拓展：</b>日常电费 = 用电度数 × 电价。若某地区电价 0.5 元/(kW·h)，上面洗衣机工作 2.7 h 的电费约为 <span class="num">0.5 元</span>。
+        </div>
+      </div>
+    </div>
+
+    <div class="concl">
+      <div class="k">单位换算</div>
+      <div class="t"><i class="v">W</i> = <i class="v">U</i><i class="v">I</i><i class="v">t</i> 算出的是焦耳；除以 3.6×10⁶ 即得千瓦时（度）。生活用电以"度"计量，电能表前后两次读数之差就是本次用电量。</div>
+    </div>
+  </section>
+
+  <!-- ================= ④ 电功率 ================= -->
+  <section class="tab" id="tab3">
+    <div class="grid2">
+      <div class="panel">
+        <div class="phead"><span class="dot"></span><h3>电功率：做功的快慢</h3><span class="tip">P = W/t = UI</span></div>
+        <div class="cards c2">
+          <div class="card"><div class="ct">定义式<span class="tag g">通用</span></div><div class="cf">P = W / t</div><div class="cd">单位时间内电流所做的功。</div></div>
+          <div class="card"><div class="ct">常用式<span class="tag g">通用</span></div><div class="cf">P = U I</div><div class="cd">由 W = UIt 除以 t 得到。</div></div>
+          <div class="card"><div class="ct">变形<span class="tag o">纯电阻</span></div><div class="cf">P = I²R = U²/R</div><div class="cd">配合 I = U/R 使用。</div></div>
+          <div class="card"><div class="ct">单位<span class="tag g">换算</span></div><div class="cf">1 kW = 1000 W</div><div class="cd">1 W = 1000 mW；1 kW·h 就是 1 h 内做 1 kW 的功。</div></div>
+        </div>
+        <div class="note amber" style="margin-top:12px">
+          <b>额定功率：</b>用电器正常工作的电压叫<b>额定电压</b>，在额定电压下的功率叫<b>额定功率</b>。
+          实际电压偏低，用电器消耗功率低、不能正常工作；实际电压偏高，长期使用会缩短寿命，还可能烧坏用电器。
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="phead"><span class="dot" style="background:var(--red)"></span><h3>额定值 vs 实际值</h3><span class="tip">拖动实际电压</span></div>
+        <div class="grid2eq" style="gap:12px;align-items:end">
+          <div>
+            <div style="font-size:12.5px;color:var(--muted);margin-bottom:5px">用电器（额定电压 220 V）</div>
+            <select id="ratedSel" class="mini" style="width:100%;height:34px">
+              <option value="40">白炽灯 220V 40W</option>
+              <option value="100" selected>白炽灯 220V 100W</option>
+              <option value="1000">电饭锅 220V 1000W</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:12.5px;color:var(--muted);margin-bottom:5px">线圈/灯丝电阻 R = U²/P</div>
+            <div class="fsub num" id="rShow" style="font-size:19px;color:var(--blue-d);padding:4px 0">484.0 Ω</div>
+          </div>
+        </div>
+        <div class="sld" style="margin-top:10px">
+          <div class="top"><span class="nm">实际电压 U<sub>实</sub></span><span class="val" id="uRealVal">220</span><span class="unit">V</span></div>
+          <input type="range" id="uReal" min="0" max="330" step="5" value="220"/>
+        </div>
+        <div style="text-align:center;padding:6px 0 2px">
+          <span id="bulb2" style="display:inline-block;width:64px;height:64px;border-radius:50%;background:#f4f6fa;border:3px solid #c8d2e0;font-size:22px;line-height:60px">💡</span>
+        </div>
+        <div class="outs">
+          <div class="out"><span>额定功率 P<sub>额</sub></span><b id="pRated">100.0 W</b></div>
+          <div class="out hi"><span>实际功率 P<sub>实</sub></span><b id="pReal">100.0 W</b></div>
+          <div class="out"><span>U<sub>实</sub>/U<sub>额</sub></span><b id="uRatio">1.00</b></div>
+        </div>
+        <div class="note green" id="ratedNote" style="margin-top:11px">
+          <b>正常工作：</b>实际电压等于额定电压，实际功率为 100.0 W，用电器处于最佳工作状态。
+        </div>
+      </div>
+    </div>
+
+    <div class="concl">
+      <div class="k">一句话</div>
+      <div class="t">电功 <i class="v">W</i> 是"总共做了多少"（快慢 × 时间）；电功率 <i class="v">P</i> = <i class="v">W</i>/<i class="v">t</i> = <i class="v">U</i><i class="v">I</i> 是"做得有多快"。纯电阻电路中 P<sub>实</sub> : P<sub>额</sub> = (U<sub>实</sub>/U<sub>额</sub>)²。</div>
+    </div>
+  </section>
+
+  <!-- ================= ⑤ 例题 ================= -->
+  <section class="tab" id="tab4">
+    <div class="grid2eq">
+      <div class="panel">
+        <div class="phead"><span class="dot"></span><h3>典型例题（点击展开解法）</h3><span class="tip">4 例</span></div>
+
+        <details class="ex" open>
+          <summary><span class="exno">例 1</span>白炽灯耗电：W = Pt 与"度"</summary>
+          <div class="body">
+            <div class="step">一只标有"220 V 100 W"的白炽灯正常工作 1 h，消耗多少电功？</div>
+            <div class="step"><b>解：</b>P = 100 W = 0.1 kW，t = 1 h</div>
+            <div class="step">W = P t = 0.1 kW × 1 h = <span class="res">0.1 kW·h</span>（即 0.1 度）</div>
+            <div class="step">W = 100 W × 3600 s = <span class="res">3.6×10⁵ J</span></div>
+            <div class="step" style="color:#7b89a2">要点：已知额定电压、额定功率且正常工作时，直接用 W = Pt 最方便。</div>
+          </div>
+        </details>
+
+        <details class="ex">
+          <summary><span class="exno">例 2</span>电动机：W &gt; Q 的"非纯电阻"问题</summary>
+          <div class="body">
+            <div class="step">某电动机两端电压 220 V，通过的电流 2 A，工作 10 min。求：(1) 消耗的电功；(2) 若线圈电阻为 4 Ω，产生的热量；(3) 转化为机械能的能量。</div>
+            <div class="step"><b>(1) 电功（只能用 W = UIt）：</b></div>
+            <div class="step">W = U I t = 220 V × 2 A × 600 s = <span class="res">2.64×10⁵ J</span></div>
+            <div class="step"><b>(2) 电热（焦耳定律）：</b>Q = I²R t = (2 A)² × 4 Ω × 600 s = <span class="res">9600 J</span></div>
+            <div class="step"><b>(3) 机械能：</b>E<sub>机</sub> = W − Q = 2.64×10⁵ J − 9600 J ≈ <span class="res">2.54×10⁵ J</span></div>
+            <div class="step" style="color:#cf3b3b">易错：电动机不能套用 W = I²Rt，否则会把 2.64×10⁵ J 误算成 9600 J。</div>
+          </div>
+        </details>
+
+        <details class="ex">
+          <summary><span class="exno">例 3</span>串联电路：W₁ : W₂ = R₁ : R₂</summary>
+          <div class="body">
+            <div class="step">R₁ = 10 Ω、R₂ = 20 Ω 串联接在 6 V 电源上，求 10 s 内两电阻各消耗多少电能。</div>
+            <div class="step"><b>解：</b>R = R₁ + R₂ = 30 Ω，I = U / R = 6 V / 30 Ω = 0.2 A</div>
+            <div class="step">W₁ = I²R₁t = (0.2 A)² × 10 Ω × 10 s = <span class="res">4 J</span></div>
+            <div class="step">W₂ = I²R₂t = (0.2 A)² × 20 Ω × 10 s = <span class="res">8 J</span></div>
+            <div class="step">W₁ : W₂ = 4 : 8 = 1 : 2 = R₁ : R₂ ✔</div>
+          </div>
+        </details>
+
+        <details class="ex">
+          <summary><span class="exno">例 4</span>并联电路：W₁ : W₂ = R₂ : R₁</summary>
+          <div class="body">
+            <div class="step">R₁ = 10 Ω、R₂ = 20 Ω 并联接在 6 V 电源上，求 10 s 内两电阻各消耗多少电能。</div>
+            <div class="step"><b>解：</b>并联电压相同 U₁ = U₂ = 6 V，用 W = U²t / R：</div>
+            <div class="step">W₁ = U²t / R₁ = (6 V)² × 10 s ÷ 10 Ω = <span class="res">36 J</span></div>
+            <div class="step">W₂ = U²t / R₂ = (6 V)² × 10 s ÷ 20 Ω = <span class="res">18 J</span></div>
+            <div class="step">W₁ : W₂ = 36 : 18 = 2 : 1 = R₂ : R₁ ✔（电阻小的反而做的功多）</div>
+          </div>
+        </details>
+      </div>
+
+      <div class="panel">
+        <div class="phead"><span class="dot" style="background:var(--cyan)"></span><h3>解题思路地图</h3></div>
+        <table class="t">
+          <tr><th style="width:30%">已知条件</th><th>选用公式</th><th style="width:26%">适用电路</th></tr>
+          <tr><td>U、I、t</td><td class="num">W = UIt</td><td>任何电路</td></tr>
+          <tr><td>P、t</td><td class="num">W = Pt</td><td>任何电路</td></tr>
+          <tr><td>U、Q</td><td class="num">W = UQ</td><td>任何电路</td></tr>
+          <tr><td>I、R、t</td><td class="num">W = I²Rt</td><td>纯电阻（串联常用）</td></tr>
+          <tr><td>U、R、t</td><td class="num">W = U²t/R</td><td>纯电阻（并联常用）</td></tr>
+          <tr><td>串/并联分配</td><td class="num">W₁:W₂ = R₁:R₂ / R₂:R₁</td><td>纯电阻</td></tr>
+        </table>
+        <div class="note blue" style="margin-top:12px">
+          <b>三步法：</b>① 判断是不是纯电阻电路 → ② 选出合适公式（已知什么用什么）→ ③ 统一单位（V、A、s、J 或 kW、h、kW·h）后代数计算。
+        </div>
+        <div class="note red" style="margin-top:10px">
+          <b>三个易错点：</b>
+          <div style="margin-top:4px">① 含电动机时 W ≠ Q，不能乱用 I²Rt 求电功；</div>
+          <div>② 单位不统一（W 与 kW、s 与 h）会算错 1000 倍；</div>
+          <div>③ 额定功率不等于实际功率，只有实际电压 = 额定电压时才相等。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="concl">
+      <div class="k">例题总结</div>
+      <div class="t">先判断电路性质，再选公式，最后统一单位。串联比 <i class="v">R</i>，并联比 <i class="v">1/R</i>——这是电功分配题的核心。</div>
+    </div>
+  </section>
+
+  <!-- ================= ⑥ 拓展：可逆电池 ================= -->
+  <section class="tab" id="tab5">
+    <div class="grid2">
+      <div class="panel">
+        <div class="phead"><span class="dot" style="background:var(--cyan)"></span><h3>从 W = UIt 到最大电功</h3><span class="tip">物理化学 · 电化学衔接</span></div>
+        <div class="cards c2">
+          <div class="card">
+            <div class="ct">原电池做的电功</div>
+            <div class="cf">W<sub>电</sub> = <i class="v">nFE</i></div>
+            <div class="cd">n 为转移电子数（mol），F = 96485 C/mol（法拉第常数），E 为电池电动势（V）。</div>
+          </div>
+          <div class="card">
+            <div class="ct">恒温恒压可逆过程</div>
+            <div class="cf">Δ<sub>r</sub>G<sub>m</sub> = −<i class="v">nFE</i></div>
+            <div class="cd">可逆电池做<b>最大电功</b>，等于体系吉布斯自由能的降低值：W<sub>max</sub> = −ΔG。</div>
+          </div>
+        </div>
+        <div class="note blue" style="margin-top:12px">
+          <b>与中学结论对照：</b>W = UIt 描述的是"实际消耗了多少电能"；而 W<sub>max</sub> = nFE 给出的是"在给定化学变化下电功的理论上限"。
+          实际电池有内阻、极化等不可逆因素，故 <b>W<sub>实际</sub> &lt; W<sub>max</sub></b>，多余的自由能以热的形式耗散——这与"非纯电阻电路 W &gt; Q"是同一件事的两个侧面。
+        </div>
+        <div class="note green" style="margin-top:10px">
+          <b>可逆推广：</b>当 E 随反应进行变化时，W<sub>max</sub> = ∫ nFe dξ；在恒温恒压且只做电功时，ΔG = −nFE 是电化学热力学的桥梁式。
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="phead"><span class="dot"></span><h3>最大电功计算器</h3><span class="tip">拖动 n 与 E</span></div>
+        <div class="sld">
+          <div class="top"><span class="nm">转移电子数 n</span><span class="val" id="nVal">2.0</span><span class="unit">mol</span></div>
+          <input type="range" id="nRange" min="1" max="6" step="0.5" value="2"/>
+        </div>
+        <div class="sld">
+          <div class="top"><span class="nm">电池电动势 E</span><span class="val" id="eVal">1.10</span><span class="unit">V</span></div>
+          <input type="range" id="eRange" min="0.1" max="2.5" step="0.01" value="1.1"/>
+        </div>
+        <div class="fbox" style="margin-bottom:0">
+          <div class="fsub" style="font-size:17px">W<sub>max</sub> = n F E = <span id="wSubst" class="num">2.0 × 96485 × 1.10</span></div>
+          <div class="fbig" id="wMax" style="font-size:32px;margin-top:6px">2.12×10⁵ J/mol</div>
+          <div class="fsub num" style="font-size:14px;color:var(--muted)">≈ 212.3 kJ/mol</div>
+        </div>
+        <div class="outs" style="margin-top:11px">
+          <div class="out"><span>Δ<sub>r</sub>G<sub>m</sub> = −nFE</span><b id="dG">−212.3</b></div>
+          <div class="out"><span>1 mol 电子电荷</span><b>96485 C</b></div>
+          <div class="out"><span>电池是否自发</span><b id="spont" style="color:var(--green)">是</b></div>
+        </div>
+        <div class="note amber" style="margin-top:11px">E &gt; 0 时 <b>Δ<sub>r</sub>G<sub>m</sub> &lt; 0</b>，反应自发，原电池向外做电功。</div>
+      </div>
+    </div>
+
+    <div class="concl">
+      <div class="k">知识升华</div>
+      <div class="t">电功有两重身份：<i class="v">W</i> = <i class="v">U</i><i class="v">I</i><i class="v">t</i> 是工程计量的实际消耗；<i class="v">W</i><sub>max</sub> = <i class="v">nFE</i> = −Δ<i class="v">G</i> 是热力学给出的理论极限。抓住"不可逆损耗"，就抓住了电化学能量转换的关键。</div>
+    </div>
+  </section>
+
+  <div class="foot">
+    <span>快捷键：<span class="kbd">←</span><span class="kbd">→</span> 切换章节</span>
+    <span><span class="kbd">空格</span> 通电 / 停止</span>
+    <span><span class="kbd">F</span> 全屏</span>
+    <span><span class="kbd">Esc</span> 退出</span>
+    <span>·</span>
+    <span>内容依据：百度百科「电功」词条 + 物理化学电化学基础</span>
+  </div>
+
+  </div></div><!-- /stage /viewport -->
+
+  <div id="caption"></div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(s,r){return (r||document).querySelector(s);};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
+
+/* ================= 数值格式化 ================= */
+var SUPS={'-':'\u207B','+':'','0':'\u2070','1':'\u00B9','2':'\u00B2','3':'\u00B3','4':'\u2074','5':'\u2075','6':'\u2076','7':'\u2077','8':'\u2078','9':'\u2079'};
+function sup(n){return String(n).split('').map(function(c){return SUPS[c]!==undefined?SUPS[c]:c;}).join('');}
+function group(s){return s.replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+function sci(x,d){d=d||3;var e=Math.floor(Math.log10(Math.abs(x)));var m=x/Math.pow(10,e);return m.toFixed(d-1)+'\u00D710'+sup(e);}
+function fmt(x,d){
+  d=(d===undefined)?2:d;
+  if(!isFinite(x))return '--';
+  var a=Math.abs(x);
+  if(a<1e-12) return (0).toFixed(d);
+  if(a<1e-3||a>=1e6) return sci(x,3);
+  var s=x.toFixed(d),p=s.split('.');
+  return group(p[0])+(p[1]?'.'+p[1]:'');
+}
+function clamp(v,a,b){return v<a?a:(v>b?b:v);}
+
+/* ================= 章节切换 ================= */
+var tabBtns=$$('.tabbtn');
+function go(i){
+  tabBtns.forEach(function(b){b.classList.toggle('on',+b.dataset.tab===i);});
+  $$('section.tab').forEach(function(s,k){s.classList.toggle('on',k===i);});
+  $('#viewport').scrollTop=0;
+}
+tabBtns.forEach(function(b){b.addEventListener('click',function(){go(+b.dataset.tab);});});
+/* 支持 #t0 ~ #t5 锚点：PPT 不同幻灯片可分别链接到不同模块 */
+function applyHash(){
+  var m=/^#t([0-5])$/.exec(location.hash||'');
+  if(m){go(+m[1]);}
+}
+window.addEventListener('hashchange',applyHash);
+applyHash();
+
+/* ================= 缩放 / 全屏 ================= */
+var zoom=1;
+function setZoom(z){zoom=clamp(z,0.6,1.8);$('#stage').style.zoom=zoom;$('#zoomVal').textContent=Math.round(zoom*100)+'%';}
+$('#zoomIn').addEventListener('click',function(){setZoom(zoom+0.1);});
+$('#zoomOut').addEventListener('click',function(){setZoom(zoom-0.1);});
+$('#btnFull').addEventListener('click',function(){
+  if(document.body.classList.contains('ppt-host')) return;
+  try{
+    if(document.fullscreenElement && document.exitFullscreen){document.exitFullscreen();}
+    else if(document.documentElement.requestFullscreen){document.documentElement.requestFullscreen();}
+  }catch(e){}
+});
+
+/* ================= ① 电路模拟 ================= */
+var S={U:220,I:2,t:10,cur:0,run:false,load:'motor',speed:2,on:true,R:4};
+var els={
+  wire:$('#wirePath'),dots:$('#dots'),lever:$('#lever'),
+  loadMotor:$('#loadMotor'),loadHeater:$('#loadHeater'),loadLamp:$('#loadLamp'),
+  effMotor:$('#effMotor'),effHeater:$('#effHeater'),effLamp:$('#effLamp'),
+  rotor:$('#rotor'),rope:$('#rope'),weight:$('#weight'),coilBig:$('#coilBig'),coilOn:$('#coilOn'),
+  heatWaves:$('#heatWaves'),bulbGlow:$('#bulbGlow'),lampBody:$('#lampBody'),disc:$('#disc')
+};
+var NS='http://www.w3.org/2000/svg';
+var pathLen=0,dotEls=[],DOTN=26,phase=0,rotAngle=0;
+function initDots(){
+  try{pathLen=els.wire.getTotalLength();}catch(e){pathLen=880;}
+  if(!pathLen)pathLen=880;
+  els.dots.innerHTML='';
+  dotEls=[];
+  for(var i=0;i<DOTN;i++){
+    var c=document.createElementNS(NS,'circle');
+    c.setAttribute('r',4.2);c.setAttribute('fill','#3f86e0');c.setAttribute('opacity','0');
+    els.dots.appendChild(c);dotEls.push(c);
+  }
+}
+initDots();
+
+function pctX(v){return clamp(v/6000,0,1);}
+var lastTs=0;
+function loop(ts){
+  var dt=lastTs?(ts-lastTs)/1000:0.016;lastTs=ts;
+  dt=Math.min(dt,0.06);
+  if(S.run&&S.on){
+    S.cur=Math.min(S.t,S.cur+dt*S.speed);
+    if(S.cur>=S.t-1e-9){S.cur=S.t;S.run=false;updateRunUI();}
+  }
+  render(dt);
+  requestAnimationFrame(loop);
+}
+function render(dt){
+  var U=S.U,I=S.I,tc=S.cur;
+  var W=U*I*tc, P=U*I;
+  /* 文本 */
+  $('#subst').textContent='W = '+U.toFixed(1)+' V \u00D7 '+I.toFixed(2)+' A \u00D7 '+tc.toFixed(1)+' s';
+  $('#outW').textContent=fmt(W,2)+' J';
+  $('#outKwh').textContent=(W/3.6e6).toFixed(6);
+  $('#outP').textContent=P.toFixed(1)+' W';
+  $('#tlabel').textContent=tc.toFixed(1)+' s / '+S.t.toFixed(1)+' s';
+  $('#tbar').style.width=(tc/S.t*100)+'%';
+  $('#meterReading').textContent=(W/3.6e6).toFixed(6)+' kW\u00B7h';
+  /* 电流小球 */
+  var v=S.run?((18+S.I*42)*S.speed):0;
+  phase=(phase+v*dt)%pathLen;
+  for(var i=0;i<DOTN;i++){
+    if(!S.on){dotEls[i].setAttribute('opacity','0');continue;}
+    var L=(phase+i*pathLen/DOTN)%pathLen;
+    var p=els.wire.getPointAtLength(L);
+    dotEls[i].setAttribute('cx',p.x);dotEls[i].setAttribute('cy',p.y);
+    dotEls[i].setAttribute('opacity',0.9);
+  }
+  /* 电能表转盘 */
+  rotAngle=(rotAngle+ (S.run? P*0.32*S.speed*dt : 0))%360;
+  els.disc.style.transform='rotate('+rotAngle+'deg)';
+  /* 效果 */
+  var lift=pctX(W)*80;
+  els.weight.setAttribute('transform','translate(0,'+(-lift)+')');
+  els.rope.setAttribute('y2',240-lift);
+  if(S.run||S.cur>0){els.rotor.setAttribute('transform','rotate('+(rotAngle*1.2)+' 470 96)');}
+  var hp=clamp(P/1400,0,1);
+  var col=lerpColor([142,155,176],[255,64,32],Math.pow(hp,0.6));
+  els.coilBig.setAttribute('stroke',col);
+  els.coilBig.setAttribute('filter',hp>0.25?'url(#fRed)':'none');
+  els.coilOn.setAttribute('stroke',hp>0.3?'#e05a2b':'#8e9bb0');
+  els.heatWaves.setAttribute('opacity',(hp*0.95).toFixed(2));
+  var bright=Math.pow(clamp(P/1200,0,1),0.45);
+  els.bulbGlow.setAttribute('opacity',(bright*0.95).toFixed(2));
+  els.lampBody.style.filter='brightness('+(1+2.1*bright).toFixed(2)+')';
+}
+function lerpColor(a,b,k){
+  var c=[0,1,2].map(function(i){return Math.round(a[i]+(b[i]-a[i])*k);});
+  return 'rgb('+c[0]+','+c[1]+','+c[2]+')';
+}
+requestAnimationFrame(loop);
+
+/* 负载切换 */
+function setLoad(k){
+  S.load=k;
+  $$('.pill[data-load]').forEach(function(b){b.classList.toggle('on',b.dataset.load===k);});
+  els.loadMotor.style.display=(k==='motor')?'':'none';
+  els.loadHeater.style.display=(k==='heater')?'':'none';
+  els.loadLamp.style.display=(k==='lamp')?'':'none';
+  els.effMotor.style.display=(k==='motor')?'':'none';
+  els.effHeater.style.display=(k==='heater')?'':'none';
+  els.effLamp.style.display=(k==='lamp')?'':'none';
+  var notes={
+    motor:['blue','<b>能量转化：</b>电能 \u2192 机械能（电动机）。电流做了多少功，就有多少电能转化为其他形式的能，能的总量不变。'],
+    heater:['amber','<b>能量转化：</b>电能 \u2192 内能（电炉丝发热）。电炉是<b>纯电阻</b>用电器，此时 W = Q\u70ED = I\u00B2Rt。'],
+    lamp:['green','<b>能量转化：</b>电能 \u2192 内能与光能（灯丝灼热发光）。白炽灯近似为纯电阻用电器。']
+  };
+  var n=notes[k];
+  var box=$('#energyNote');
+  box.className='note '+n[0];
+  box.innerHTML=n[1];
+  $('#runBtn').classList.toggle('go',k!=='motor');
+}
+$$('.pill[data-load]').forEach(function(b){b.addEventListener('click',function(){setLoad(b.dataset.load);});});
+
+/* 通电 / 开关 / 复位 */
+function updateRunUI(){
+  $('#runBtn').textContent=S.run?'\u23F8 暂停':'\u25B6 通电';
+  $('#runBtn').classList.toggle('go',!S.run);
+}
+function startRun(){
+  if(!S.on)return;
+  if(S.cur>=S.t-1e-9)S.cur=0;
+  S.run=true;updateRunUI();
+}
+function stopRun(){S.run=false;updateRunUI();}
+$('#runBtn').addEventListener('click',function(){ if(S.run){stopRun();} else {startRun();} });
+$('#resetBtn').addEventListener('click',function(){S.cur=0;S.run=false;updateRunUI();});
+function updateSwitchUI(){
+  els.lever.setAttribute('transform',S.on?'rotate(0 180 70)':'rotate(-34 180 70)');
+  $('#switchBtn').textContent=S.on?'断开开关':'闭合开关';
+  $('#switchBtn').className='btn small'+(S.on?'':' warn');
+}
+$('#switchBtn').addEventListener('click',function(){S.on=!S.on;if(!S.on)stopRun();updateSwitchUI();});
+$('#speedSel').addEventListener('change',function(){S.speed=parseFloat(this.value)||1;});
+
+/* 滑块 */
+function syncInputs(){
+  $('#URange').value=S.U;$('#IRange').value=S.I;$('#tRange').value=S.t;
+  $('#UVal').textContent=S.U.toFixed(1);
+  $('#IVal').textContent=S.I.toFixed(2);
+  $('#TVal').textContent=S.t.toFixed(1);
+}
+$('#URange').addEventListener('input',function(){S.U=parseFloat(this.value);S.cur=0;stopRun();syncInputs();});
+$('#IRange').addEventListener('input',function(){S.I=parseFloat(this.value);S.cur=0;stopRun();syncInputs();});
+$('#tRange').addEventListener('input',function(){S.t=parseFloat(this.value);S.cur=0;stopRun();syncInputs();});
+syncInputs();setLoad('motor');updateSwitchUI();updateRunUI();
+/* 打开即自动通电演示（如果不需要，删掉下面两行即可） */
+setTimeout(function(){startRun();},600);
+
+/* ================= ② 公式家族 ================= */
+var mode='uit';
+function calc(){
+  var A=parseFloat($('#inA').value)||0,B=parseFloat($('#inB').value)||0,C=parseFloat($('#inC').value)||0;
+  var W=0,formula='',subst='';
+  if(mode==='uit'){
+    W=A*B*C;formula='W = U I t';
+    subst='= '+A+' V \u00D7 '+B+' A \u00D7 '+C+' s';
+  }else if(mode==='irt'){
+    W=B*B*A*C;formula='W = I\u00B2 R t';
+    subst='= ('+B+' A)\u00B2 \u00D7 '+A+' \u03A9 \u00D7 '+C+' s';
+  }else{
+    W=A*A*C/B;formula='W = U\u00B2 t / R';
+    subst='= ('+A+' V)\u00B2 \u00D7 '+C+' s \u00F7 '+B+' \u03A9';
+  }
+  W=(isFinite(W)&&!isNaN(W))?W:0;
+  $('#mFormula').textContent=formula;
+  $('#mSubst').textContent=subst;
+  $('#mOut').textContent=fmt(W,2)+' J';
+  $('#mKwh').textContent='\u2248 '+(W/3.6e6).toFixed(6)+' kW\u00B7h';
+}
+$$('#modeBar .pill').forEach(function(b){
+  b.addEventListener('click',function(){
+    mode=b.dataset.mode;
+    $$('#modeBar .pill').forEach(function(x){x.classList.toggle('on',x===b);});
+    var l1=$('#inA1'),l2=$('#inB1'),v1=$('#inA'),v2=$('#inB');
+    if(mode==='uit'){
+      l1.textContent='电压 U / V';l2.textContent='电流 I / A';v1.value=220;v2.value=2;
+    }else if(mode==='irt'){
+      l1.textContent='电流 I / A';l2.textContent='电阻 R / \u03A9';v1.value=2;v2.value=10;
+    }else{
+      l1.textContent='电压 U / V';l2.textContent='电阻 R / \u03A9';v1.value=6;v2.value=10;
+    }
+    calc();
+  });
+});
+['inA','inB','inC'].forEach(function(id){$('#'+id).addEventListener('input',calc);});
+$('#calcBtn').addEventListener('click',calc);
+calc();
+
+/* 串并联 */
+var cir='series';
+function calcCir(){
+  var R1=parseFloat($('#cR1').value)||1,R2=parseFloat($('#cR2').value)||1;
+  var U=parseFloat($('#cU').value)||0,t=parseFloat($('#cT').value)||0;
+  var W1,W2,I;
+  if(cir==='series'){
+    var R=R1+R2;I=U/R;W1=I*I*R1*t;W2=I*I*R2*t;
+  }else{
+    I=U/R1+U/R2;W1=U*U*t/R1;W2=U*U*t/R2;
+  }
+  var mx=Math.max(W1,W2,1e-9);
+  $('#bar1').style.width=(W1/mx*100)+'%';
+  $('#bar2').style.width=(W2/mx*100)+'%';
+  $('#cOut1').textContent=fmt(W1,2)+' J';
+  $('#cOut2').textContent=fmt(W2,2)+' J';
+  $('#cTotal').textContent=fmt(W1+W2,2)+' J';
+  $('#cI').textContent=fmt(I,3)+' A';
+  $('#cRatio').textContent=ratioStr(W1,W2);
+}
+function ratioStr(a,b){
+  if(!isFinite(a)||!isFinite(b)||b<=0)return '--';
+  var r=a/b;
+  if(Math.abs(r-1)<1e-6)return '1 : 1';
+  if(Math.abs(r-Math.round(r))<0.02||Math.abs(1/r-Math.round(1/r))<0.02){
+    if(r>=1)return Math.round(r)+' : 1';
+    return '1 : '+Math.round(1/r);
+  }
+  return fmt(r,2)+' : 1';
+}
+$$('.pill[data-cir]').forEach(function(b){
+  b.addEventListener('click',function(){
+    cir=b.dataset.cir;
+    $$('.pill[data-cir]').forEach(function(x){x.classList.toggle('on',x===b);});
+    if(cir==='series'){
+      $('#cirNote').innerHTML='<b>串联：</b>电流处处相等 I\u2081 = I\u2082 = I，故 W\u2081 : W\u2082 = R\u2081 : R\u2082 = U\u2081 : U\u2082。';
+      $('#cUlab').textContent='电源电压 U / V';
+    }else{
+      $('#cirNote').innerHTML='<b>并联：</b>各支路电压相等 U\u2081 = U\u2082 = U，故 W\u2081 : W\u2082 = R\u2082 : R\u2081，电阻小的分得电功多。';
+      $('#cUlab').textContent='支路电压 U / V';
+    }
+    calcCir();
+  });
+});
+['cR1','cR2','cU','cT'].forEach(function(id){$('#'+id).addEventListener('input',calcCir);});
+calcCir();
+
+/* ================= ③ 单位换算 ================= */
+function convKwh(){
+  var v=parseFloat($('#kwhIn').value)||0;
+  $('#jOut').textContent=fmt(v*3.6e6,2);
+}
+function convJ(){
+  var v=parseFloat($('#jIn').value)||0;
+  $('#kwhOut').textContent=(v/3.6e6).toFixed(6);
+}
+function convMeter(){
+  var a=parseFloat($('#m1').value)||0,b=parseFloat($('#m2').value)||0;
+  var d=b-a;
+  $('#mDiff').textContent=d.toFixed(3)+' kW\u00B7h';
+  $('#mDiffJ').textContent=fmt(Math.abs(d)*3.6e6,2)+' J';
+  $('#mDiffNote').textContent=Math.abs(d).toFixed(1)+' 度';
+}
+$('#kwhIn').addEventListener('input',convKwh);
+$('#jIn').addEventListener('input',convJ);
+$('#m1').addEventListener('input',convMeter);
+$('#m2').addEventListener('input',convMeter);
+convKwh();convJ();convMeter();
+
+/* ================= ④ 电功率 ================= */
+function calcRated(){
+  var P=parseFloat($('#ratedSel').value)||100;
+  var Ue=220,R=Ue*Ue/P;
+  var U=parseFloat($('#uReal').value)||0;
+  var Pe=U*U/R;
+  var ratio=U/Ue;
+  $('#rShow').textContent=R.toFixed(1)+' \u03A9';
+  $('#uRealVal').textContent=U;
+  $('#pRated').textContent=P.toFixed(1)+' W';
+  $('#pReal').textContent=(isFinite(Pe)?Pe:0).toFixed(1)+' W';
+  $('#uRatio').textContent=ratio.toFixed(2);
+  var b=clamp(Pe/P,0,1.6);
+  var el=$('#bulb2');
+  var br=1+1.1*Math.pow(clamp(b,0,1),0.5);
+  el.style.filter='brightness('+br.toFixed(2)+')';
+  el.style.borderColor=b>0.05?'#e8b53a':'#c8d2e0';
+  el.style.background=b>0.05?'#fff3c4':'#f4f6fa';
+  var note=$('#ratedNote');
+  if(ratio<0.95){
+    note.className='note amber';
+    note.innerHTML='<b>实际电压偏低：</b>实际功率只有 '+(Pe).toFixed(1)+' W（额定 '+(P).toFixed(1)+' W），用电器消耗功率低、不能正常工作（灯光发暗、电机无力）。';
+  }else if(ratio>1.075){
+    note.className='note red';
+    note.innerHTML='<b class="warnflash">实际电压偏高，危险！</b>实际功率达 '+(Pe).toFixed(1)+' W，是额定功率的 '+ratio.toFixed(2)+' 倍（P \u221D U\u00B2），长期使用会缩短寿命，甚至烧坏用电器。';
+  }else{
+    note.className='note green';
+    note.innerHTML='<b>正常工作：</b>实际电压等于额定电压，实际功率为 '+(P).toFixed(1)+' W，用电器处于最佳工作状态。';
+  }
+}
+$('#ratedSel').addEventListener('change',calcRated);
+$('#uReal').addEventListener('input',calcRated);
+calcRated();
+
+/* ================= ⑥ 可逆电池 ================= */
+var F=96485;
+function calcCell(){
+  var n=parseFloat($('#nRange').value)||1,e=parseFloat($('#eRange').value)||0;
+  var W=n*F*e;
+  $('#nVal').textContent=n.toFixed(1);
+  $('#eVal').textContent=e.toFixed(2);
+  $('#wSubst').textContent=n.toFixed(1)+' \u00D7 96485 \u00D7 '+e.toFixed(2);
+  $('#wMax').textContent=fmt(W,2)+' J/mol';
+  $('#dG').textContent='\u2212'+(W/1000).toFixed(1);
+  $('#spont').textContent=e>0?'是':'否';
+  $('#spont').style.color=e>0?'var(--green)':'var(--red)';
+}
+$('#nRange').addEventListener('input',calcCell);
+$('#eRange').addEventListener('input',calcCell);
+calcCell();
+
+/* ================= 演示模式 ================= */
+var demoTimers=[],demoIdx=0;
+var DEMO=[
+  {cap:'\u2460 电流做功的实质：电能转化为其他形式的能——通电后电动机转起来，把砝码提起。',dur:7000,fn:function(){go(0);setLoad('motor');S.U=220;S.I=2;S.t=10;S.on=true;updateSwitchUI();S.cur=0;syncInputs();startRun();}},
+  {cap:'\u2461 电压越高、电流越大、通电时间越长，电流做的功越多：W = U I t。',dur:8000,fn:function(){S.I=4;S.t=20;S.cur=0;syncInputs();startRun();}},
+  {cap:'\u2462 电动机是"非纯电阻"用电器：W = UIt > Q = I\u00B2Rt，多出的部分转化为机械能。',dur:6500,fn:function(){setLoad('motor');}},
+  {cap:'\u2463 只有纯电阻电路（电炉、白炽灯）才有 W = I\u00B2Rt = U\u00B2t/R。',dur:7000,fn:function(){go(1);}},
+  {cap:'\u2464 串联 W\u2081:W\u2082 = R\u2081:R\u2082；并联 W\u2081:W\u2082 = R\u2082:R\u2081——电阻小的反而做更多的功。',dur:8000,fn:function(){
+      go(1);cir='parallel';
+      $$('.pill[data-cir]').forEach(function(x){x.classList.toggle('on',x.dataset.cir==='parallel');});
+      $('#cirNote').innerHTML='<b>并联：</b>各支路电压相等 U\u2081 = U\u2082 = U，故 W\u2081 : W\u2082 = R\u2082 : R\u2081，电阻小的分得电功多。';
+      $('#cUlab').textContent='支路电压 U / V';
+      calcCir();
+  }},
+  {cap:'\u2465 生活单位：1 kW\u00B7h = 3.6\u00D710\u2076 J，这就是"一度电"，电能表读数之差即用电量。',dur:7500,fn:function(){go(2);}},
+  {cap:'\u2466 电功率 P = W/t = UI 描述做功快慢；偏离额定电压，实际功率按 (U\u5B9E/U\u989D)\u00B2 变化。',dur:9000,fn:function(){go(3);cycleVolt();}},
+  {cap:'\u2467 例题精讲：先判断电路性质，再选公式，最后统一单位——这是电功计算的三步法。',dur:8000,fn:function(){go(4);}},
+  {cap:'\u2468 拓展到物理化学：可逆电池做最大电功 W\u2098\u2090\u2093 = nFE = \u2212\u0394G，实际电功因不可逆损耗必然小于它。',dur:9000,fn:function(){go(5);}},
+  {cap:'\u2469 演示结束——可随时拖动滑块、切换用电器，让学生自己发现 W = U I t 的关系。',dur:5000,fn:function(){stopRun();S.I=2;S.t=10;S.cur=0;syncInputs();$('#uReal').value=220;calcRated();}}
+];
+var voltTimer=null;
+function cycleVolt(){
+  var seq=[0,60,120,180,220,260,300,220],k=0;
+  if(voltTimer)clearInterval(voltTimer);
+  voltTimer=setInterval(function(){
+    if(k>=seq.length){clearInterval(voltTimer);voltTimer=null;return;}
+    $('#uReal').value=seq[k++];calcRated();
+  },650);
+}
+function clearDemo(){
+  demoTimers.forEach(function(t){clearTimeout(t);});
+  demoTimers=[];
+  if(voltTimer){clearInterval(voltTimer);voltTimer=null;}
+}
+function showCap(txt,idx){
+  var c=$('#caption');
+  c.innerHTML='<span class="idx num">'+String(idx+1).padStart(2,'0')+'/'+String(DEMO.length).padStart(2,'0')+'</span>'+txt;
+  c.classList.add('on');
+}
+function runDemo(){
+  clearDemo();
+  var t=0;
+  DEMO.forEach(function(step,i){
+    demoTimers.push(setTimeout(function(){
+      step.fn();showCap(step.cap,i);
+      if(i===DEMO.length-1){
+        demoTimers.push(setTimeout(function(){
+          $('#caption').classList.remove('on');
+          $('#btnDemo').textContent='\u25B6 演示模式';
+          stopRun();
+        },step.dur));
+      }
+    },t));
+    t+=step.dur;
+  });
+}
+$('#btnDemo').addEventListener('click',function(){
+  var c=$('#caption');
+  if(c.classList.contains('on')){
+    clearDemo();c.classList.remove('on');stopRun();
+    $('#btnDemo').textContent='\u25B6 演示模式';
+  }else{
+    $('#btnDemo').textContent='\u25A0 停止演示';
+    if(!document.body.classList.contains('ppt-host')&&document.fullscreenElement===null&&document.documentElement.requestFullscreen){try{document.documentElement.requestFullscreen();}catch(e){}}
+    runDemo();
+  }
+});
+
+/* ================= 快捷键 ================= */
+document.addEventListener('keydown',function(e){
+  var tag=(e.target.tagName||'').toLowerCase();
+  if(tag==='input'||tag==='select'||tag==='textarea')return;
+  var cur=$$('section.tab').findIndex(function(s){return s.classList.contains('on');});
+  if(e.key==='ArrowRight'){go(Math.min(5,cur+1));e.preventDefault();}
+  else if(e.key==='ArrowLeft'){go(Math.max(0,cur-1));e.preventDefault();}
+  else if(e.key===' '){ if(S.run){stopRun();}else{startRun();} e.preventDefault();}
+  else if(e.key==='f'||e.key==='F'){
+    if(document.fullscreenElement){document.exitFullscreen();}
+    else if(document.documentElement.requestFullscreen){document.documentElement.requestFullscreen();}
+  }else if(e.key==='Escape'){
+    clearDemo();$('#caption').classList.remove('on');stopRun();
+    $('#btnDemo').textContent='\u25B6 演示模式';
+  }
+});
+
+
+/* ================= PowerPoint 宿主初始化 ================= */
+function initPowerPointHost(){
+  try{
+    document.body.classList.add('ppt-host');
+    setZoom(0.90);
+  }catch(e){}
+}
+if(window.Office && Office.onReady){
+  Office.onReady(function(info){
+    try{
+      if(!info || !info.host || info.host===Office.HostType.PowerPoint){
+        initPowerPointHost();
+      }
+    }catch(e){
+      initPowerPointHost();
+    }
+  });
+}
+
+})();
+</script>
+</body>
+</html>
