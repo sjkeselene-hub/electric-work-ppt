@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>标准电池电势 · 交互演示 · PowerPoint v9.1</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:100%; height:100%; overflow:hidden; }
+  body {
+    font-family:"Times New Roman","Microsoft YaHei",serif;
+    background:#eef4ff;
+    color:#1c2b3a; user-select:none;
+  }
+  #viewport{position:relative;width:100%;height:100%;overflow:hidden;background:#eef4ff;}
+  #stage{position:absolute;left:0;top:0;width:1600px;height:900px;transform-origin:top left;overflow:hidden;background:linear-gradient(135deg,#eef4ff 0%,#f8fbff 50%,#f0faf5 100%);}
+
+  .num { font-family:"Times New Roman","Microsoft YaHei",serif; }
+  .wrap { width:1600px; height:900px; display:flex; flex-direction:column; padding:18px 34px 12px; }
+
+  /* 标题 */
+  .top { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:0; }
+  .top h1 { font-family:"Times New Roman","Microsoft YaHei",serif; font-size:42px;
+            color:#0b57a4; letter-spacing:3px; }
+  .top .hint { font-size:19px; color:#7a8a99; }
+
+  /* 主区 */
+  .main {
+  flex:1;
+  display:grid;
+  grid-template-columns:52.5% 47.5%;
+  gap:22px;
+  min-height:0;
+  align-items:stretch;
+  width:100%;
+  margin:0;
+  transform:none;
+}
+
+  /* ====== 电池图形 ====== */
+  .battery-zone {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  height:100%;
+  padding:18px 8px 6px;
+}
+  .battery { position:relative; display:flex; align-items:center; cursor:pointer;
+             transition:transform .25s ease, filter .25s ease; }
+  .battery:hover { transform:translateY(-3px) scale(1.01); }
+  .cap { width:24px; height:116px; background:linear-gradient(180deg,#3d4854,#20272e);
+         border-radius:8px 0 0 8px; }
+  .cap.pos { border-radius:0 8px 8px 0; width:26px; height:86px;
+             background:linear-gradient(180deg,#e0575b,#b7222a); }
+  .shell { width:600px; height:240px; border-radius:20px; position:relative;
+           background:linear-gradient(180deg,#ffffff,#eef4fb);
+           border:4px solid #0b57a4; box-shadow:inset 0 6px 18px rgba(11,87,164,.10);
+           display:flex; align-items:center; justify-content:space-between; padding:0 26px; overflow:hidden; }
+  .shell::after { content:""; position:absolute; top:8px; left:8px; right:8px; height:26px;
+                  border-radius:14px 14px 0 0; background:linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,255,255,0)); }
+  .plate { width:94px; height:190px; border-radius:10px; display:flex; align-items:center;
+           justify-content:center; box-shadow:0 6px 16px rgba(0,0,0,.16); z-index:2; }
+  .plate.neg { background:linear-gradient(180deg,#5a6672,#2c343d); }
+  .plate.pos { background:linear-gradient(180deg,#e8737a,#b7222a); }
+  .plate span { color:#fff; font-size:26px; writing-mode:vertical-rl; letter-spacing:3px;
+                font-family:"Times New Roman","Microsoft YaHei",serif; }
+  .middle { flex:1; text-align:center; z-index:2; padding:0 6px; }
+  .middle .lab { font-size:19px; color:#7a8a99; margin-bottom:6px; }
+  .middle .ion { font-size:26px; color:#0b57a4; line-height:1.35; font-weight:bold;
+                 font-family:"Times New Roman","Microsoft YaHei",serif; word-break:break-word; }
+  .middle .name { margin-top:10px; font-size:19px; color:#3c4a59; line-height:1.35;
+                  font-family:"Times New Roman","Microsoft YaHei",serif; }
+  .pole {
+             position:absolute; top:-84px;
+             display:flex; flex-direction:column; align-items:center;
+             min-width:72px; z-index:5;
+             font-size:40px; line-height:1; font-weight:bold; font-family:"Times New Roman","Microsoft YaHei",serif;
+           }
+  .pole.neg { left:-30px; color:#5a6672; }
+  .pole.pos { right:-30px; color:#b7222a; }
+  .pole b {
+             display:block; margin-top:8px;
+             font-size:18px; line-height:1.1; font-weight:normal;
+             color:#7a8a99; letter-spacing:1px; white-space:nowrap;
+           }
+  .click-tip { margin-top:26px; font-size:21px; color:#0b57a4; background:rgba(11,87,164,.09);
+               padding:8px 22px; border-radius:999px; }
+
+  /* ====== 右侧信息区 ====== */
+  .panel {
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:16px;
+  width:100%;
+  height:100%;
+  padding:18px 0 10px;
+}
+  .card { background:#fff; border-radius:18px; padding:18px 24px; box-shadow:0 4px 12px rgba(0,0,0,.055); }
+  .card .cap-row { display:flex; align-items:center; gap:12px; margin-bottom:6px; }
+  .tag { font-size:17px; color:#fff; padding:3px 12px; border-radius:8px; font-family:"Times New Roman","Microsoft YaHei",serif; letter-spacing:1px; }
+  .tag.neg { background:#5a6672; }
+  .tag.pos { background:#b7222a; }
+  .tag.cell { background:#0b57a4; }
+  .card .who { font-size:20px; color:#7a8a99; }
+  .card .eq { font-size:25px; color:#1c2b3a; line-height:1.45; letter-spacing:0;
+              font-family:"Times New Roman","Microsoft YaHei",serif; word-break:break-word; }
+  .card .eq b { color:#0b57a4; }
+  .emf {
+  display:grid;
+  grid-template-columns:180px 245px minmax(0,1fr);
+  align-items:center;
+  gap:14px;
+  background:linear-gradient(135deg,#0b57a4,#1a7bd0);
+  border-radius:18px;
+  padding:14px 18px;
+  box-shadow:0 7px 18px rgba(11,87,164,.22);
+  min-height:118px;
+}
+.emf .lab {
+  color:#d7e9ff;
+  font-size:18px;
+  line-height:1.35;
+}
+.emf .value-block {
+  color:#fff;
+  min-width:0;
+}
+.emf .value-block .formula {
+  font-size:14px;
+  line-height:1.25;
+  white-space:nowrap;
+  color:#d7e9ff;
+}
+.emf .value-block .val {
+  margin-top:3px;
+  color:#fff;
+  font-size:43px;
+  font-weight:700;
+  white-space:nowrap;
+}
+.emf .value-block .val small {
+  font-size:21px;
+  font-weight:400;
+}
+.emf .sub {
+  min-width:0;
+  border-left:1px solid rgba(255,255,255,.35);
+  padding-left:14px;
+  color:#d7e9ff;
+  font-size:13px;
+  line-height:1.34;
+  text-align:left;
+}
+.emf .sub .dg-head {
+  color:#fff;
+  font-size:14px;
+  margin-bottom:2px;
+}
+.emf .sub .dg-line {
+  white-space:nowrap;
+}
+.symbol {
+  font-size:22px;
+  color:#5a6b7d;
+  font-family:"Times New Roman","Microsoft YaHei",serif;
+}
+
+  /* ====== 弹窗 ====== */
+  .mask {
+          position:fixed; inset:0;
+          background:rgba(12,26,42,.38);
+          display:flex;
+          align-items:center; justify-content:center; z-index:50;
+          opacity:0; visibility:hidden; pointer-events:none;
+          transition:opacity .08s linear, visibility 0s linear .08s;
+          contain:layout paint style;
+          transform:translateZ(0);
+          backface-visibility:hidden;
+        }
+  .mask.show {
+          opacity:1; visibility:visible; pointer-events:auto;
+          transition:opacity .08s linear;
+        }
+  .dialog { width:1020px; max-width:94%; max-height:88%; background:#fff; border-radius:22px;
+            box-shadow:0 14px 36px rgba(0,0,0,.24);
+            display:flex; flex-direction:column; overflow:hidden;
+            transform:translateZ(0);
+            backface-visibility:hidden;
+            contain:layout paint style;
+          }
+  .dlg-head { padding:18px 26px; border-bottom:1px solid #eef2f7; display:flex; align-items:center; justify-content:space-between; }
+  .dlg-head h3 { font-family:"Times New Roman","Microsoft YaHei",serif; font-size:30px; color:#0b57a4; letter-spacing:2px; }
+  .dlg-head .presets { display:flex; gap:10px; }
+  .chip { font-size:16px; padding:7px 14px; border-radius:999px; background:#eef4ff; color:#0b57a4;
+          cursor:pointer; border:1px solid #cfe0f7; transition:.2s; }
+  .chip:hover { background:#0b57a4; color:#fff; }
+  .dlg-body { display:grid; grid-template-columns:1fr 1fr; gap:0; min-height:0; }
+  .col { display:flex; flex-direction:column; min-height:0; border-right:1px solid #eef2f7; }
+  .col:last-child { border-right:none; }
+  .col-head { padding:12px 22px; font-size:20px; font-weight:bold; color:#fff; font-family:"Times New Roman","Microsoft YaHei",serif; letter-spacing:2px; }
+  .col-head.neg { background:#5a6672; }
+  .col-head.pos { background:#b7222a; }
+  .list { overflow-y:auto; padding:8px 12px 14px; }
+  .item { display:flex; align-items:center; justify-content:space-between; gap:12px;
+          padding:9px 14px; border-radius:10px; cursor:pointer; font-size:19px; transition:.15s; }
+  .item:hover { background:#f2f7ff; }
+  .item.sel { background:#0b57a4; color:#fff; }
+  .item.sel .e { color:#cfe3ff; }
+  .item .nm { font-family:"Times New Roman","Microsoft YaHei",serif; }
+  .item .e { color:#7a8a99; font-family:"Times New Roman","Microsoft YaHei",serif; font-size:17px; }
+  .dlg-foot { padding:14px 26px; border-top:1px solid #eef2f7; display:flex; align-items:center; gap:16px; }
+  .dlg-foot .msg { flex:1; font-size:18px; color:#b7222a; }
+  .btn { font-size:20px; padding:10px 30px; border-radius:12px; border:none; cursor:pointer; font-family:"Times New Roman","Microsoft YaHei",serif; }
+  .btn.primary { background:#0b57a4; color:#fff; box-shadow:0 6px 16px rgba(11,87,164,.3); }
+  .btn.primary:hover { background:#094a8c; }
+  .btn.ghost { background:#f0f3f7; color:#3c4a59; }
+  .note { font-size:14px; color:#9aa7b4; text-align:center; padding:0; line-height:1.25; }
+
+  /* ===== PowerPoint 整体等比例缩放适配 ===== */
+  #stage, #stage * { box-sizing:border-box; }
+  .main,.battery-zone,.panel,.card,.dialog,.dlg-body,.col,.list { min-width:0; min-height:0; }
+  .dlg-body { flex:1 1 auto; overflow:hidden; }
+  .list { overscroll-behavior:contain; }
+  .mask { position:absolute; inset:0; }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none!important;animation:none!important}
+  }
+
+
+  .wrap{overflow:hidden;}
+
+
+  /* ===== v7：PowerPoint 放映性能优先 ===== */
+  *, *::before, *::after {
+    animation:none !important;
+    transition:none !important;
+  }
+  .battery:hover {
+    transform:none !important;
+    filter:none !important;
+  }
+  .shell {
+    box-shadow:none !important;
+  }
+  .plate,
+  .card,
+  .emf,
+  .dialog,
+  .btn.primary {
+    box-shadow:none !important;
+    filter:none !important;
+  }
+  .mask {
+    background:rgba(12,26,42,.30) !important;
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    transform:none !important;
+    backface-visibility:visible !important;
+  }
+  .mask.show {
+    opacity:1;
+    visibility:visible;
+    pointer-events:auto;
+  }
+  .dialog {
+    transform:none !important;
+    backface-visibility:visible !important;
+  }
+
+
+  /* ===== v8：PowerPoint 放映极速浮层 ===== */
+  #mask.mask{
+    position:absolute !important;
+    inset:0 !important;
+    background:transparent !important;
+    display:block !important;
+    opacity:1 !important;
+    visibility:hidden !important;
+    pointer-events:none !important;
+    contain:strict !important;
+    transform:none !important;
+  }
+  #mask.mask.show{
+    visibility:visible !important;
+    pointer-events:none !important;
+  }
+  #mask .dialog{
+    position:absolute !important;
+    left:50% !important;
+    top:50% !important;
+    width:980px !important;
+    height:650px !important;
+    max-width:none !important;
+    max-height:none !important;
+    transform:translate(-50%,-50%) !important;
+    pointer-events:auto !important;
+
+    border:1px solid #d7e2ee !important;
+    border-radius:18px !important;
+    box-shadow:none !important;
+    filter:none !important;
+    contain:strict !important;
+    background:#fff !important;
+  }
+  #mask .dlg-head{
+    flex:0 0 70px !important;
+    padding:14px 22px !important;
+  }
+  #mask .dlg-head h3{
+    font-size:27px !important;
+  }
+  #mask .dlg-body{
+    flex:1 1 auto !important;
+    min-height:0 !important;
+    overflow:hidden !important;
+  }
+  #mask .dlg-foot{
+    flex:0 0 72px !important;
+    padding:10px 22px !important;
+    background:#fff !important;
+  }
+  #mask .list{
+    contain:content !important;
+    will-change:scroll-position !important;
+  }
+  #mask .item{
+    padding:8px 12px !important;
+    font-size:18px !important;
+  }
+  #mask .item .e{
+    font-size:16px !important;
+  }
+  #mask .btn{
+    box-shadow:none !important;
+    filter:none !important;
+  }
+
+
+  /* ===== v9：无弹窗原生选择器（放映模式优先） ===== */
+  .inline-controls{
+    width:92%;
+    margin-top:24px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px 14px;
+    align-items:end;
+  }
+  .pick{
+    background:#fff;
+    border:1px solid #d5e3f2;
+    border-radius:13px;
+    padding:9px 12px 10px;
+  }
+  .pick label{
+    display:block;
+    margin-bottom:6px;
+    color:#71839a;
+    font-size:14px;
+    letter-spacing:.5px;
+  }
+  .pick.neg label{color:#566575;}
+  .pick.pos label{color:#b7222a;}
+  .pick select{
+    width:100%;
+    height:38px;
+    border:1px solid #c7d7e8;
+    border-radius:9px;
+    background:#fff;
+    color:#24364b;
+    font-size:16px;
+    padding:0 10px;
+    outline:none;
+  }
+  .pick select:focus{border-color:#0b57a4;}
+  .inline-presets{
+    grid-column:1 / -1;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:8px;
+    min-height:34px;
+  }
+  .inline-presets .lab{
+    color:#8190a2;
+    font-size:13px;
+    margin-right:2px;
+  }
+  .inline-presets button{
+    height:31px;
+    padding:0 13px;
+    border-radius:16px;
+    border:1px solid #cfe0f3;
+    background:#eef6ff;
+    color:#0b57a4;
+    font-size:13px;
+    cursor:pointer;
+  }
+  .inline-presets button:active{
+    background:#dcecff;
+  }
+  .inline-msg{
+    grid-column:1 / -1;
+    min-height:28px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#0b57a4;
+    background:rgba(11,87,164,.08);
+    border-radius:14px;
+    font-size:14px;
+    padding:5px 10px;
+  }
+  .inline-msg.warn{
+    color:#b7222a;
+    background:rgba(183,34,42,.08);
+  }
+
+  /* 放映性能：无弹窗、无整页遮罩 */
+  #mask{display:none !important;}
+  .battery{cursor:default !important;}
+
+
+  /* ===== 字体统一：中文微软雅黑，英文/数字 Times New Roman ===== */
+  html, body, button, input, select, option, textarea {
+    font-family:"Times New Roman","Microsoft YaHei",serif !important;
+  }
+  #stage, #stage * {
+    font-family:"Times New Roman","Microsoft YaHei",serif;
+  }
+
+
+/* ===== 字体：中文微软雅黑；英文/数字 Times New Roman ===== */
+html, body, button, input, select, option, textarea {
+  font-family:"Times New Roman","Microsoft YaHei",serif !important;
+}
+#stage, #stage * {
+  font-family:"Times New Roman","Microsoft YaHei",serif;
+}
+
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+<div class="wrap">
+  <div class="top">
+    <h1>标准电池电势 · 交互演示</h1>
+    <div class="hint">数据：25 ℃ 水溶液标准电极电势（以标准氢电极 SHE = 0.000 V 为基准）</div>
+  </div>
+
+  <div class="main">
+    <!-- 电池图形 -->
+    <div class="battery-zone">
+      <div class="battery" id="battery">
+        <div class="pole neg">−<b>负极</b></div>
+        <div class="cap"></div>
+        <div class="shell">
+          <div class="plate neg"><span id="negPlateName">Zn</span></div>
+          <div class="middle">
+            <div class="lab">电解质溶液</div>
+            <div class="ion" id="midIon">Zn<sup>2+</sup></div>
+            <div class="name" id="midName">锌电极 · E° = −0.762 V</div>
+          </div>
+          <div class="plate pos"><span id="posPlateName">Cu</span></div>
+        </div>
+        <div class="cap pos"></div>
+        <div class="pole pos">+<b>正极</b></div>
+      </div>
+      <div class="inline-controls">
+        <div class="pick neg">
+          <label for="negSelect">负极（氧化 · 电势较低者）</label>
+          <select id="negSelect"></select>
+        </div>
+        <div class="pick pos">
+          <label for="posSelect">正极（还原 · 电势较高者）</label>
+          <select id="posSelect"></select>
+        </div>
+        <div class="inline-presets" id="inlinePresets">
+          <span class="lab">常用预设：</span>
+        </div>
+        <div class="inline-msg" id="inlineMsg">直接选择正负极，结果会立即更新</div>
+      </div>
+    </div>
+
+    <!-- 反应信息 -->
+    <div class="panel">
+      <div class="card">
+        <div class="cap-row"><span class="tag neg">负极 · 氧化反应</span><span class="who" id="negWho">Zn</span></div>
+        <div class="eq" id="negEq"></div>
+      </div>
+      <div class="card">
+        <div class="cap-row"><span class="tag pos">正极 · 还原反应</span><span class="who" id="posWho">Cu</span></div>
+        <div class="eq" id="posEq"></div>
+      </div>
+      <div class="card">
+        <div class="cap-row"><span class="tag cell">电池总反应</span></div>
+        <div class="eq" id="totalEq"></div>
+      </div>
+      <div class="emf">
+        <div class="lab">电池电动势<br>E<sup>⊖</sup><sub>cell</sub></div>
+        <div class="value-block">
+          <div class="formula" id="emfFormula">E<sup>⊖</sup><sub>cell</sub> = E<sup>⊖</sup><sub>正极</sub> − E<sup>⊖</sup><sub>负极</sub></div>
+          <div class="val num" id="emfVal">1.104 <small>V</small></div>
+        </div>
+        <div class="sub" id="emfSub"></div>
+      </div>
+      <div class="symbol" id="cellSymbol"></div>
+    </div>
+  </div>
+  <div class="note">说明：5 号干电池（≈1.5 V）、镍氢电池（≈1.2 V）、锂离子电池（≈3.7 V）为非水或非标准体系，不能由标准电极电势直接计算，其电压为实际工作电压。</div>
+</div>
+
+</div></div>
+
+<script>
+/* LOGIC_START */
+/* ================= 标准电极电势数据（25℃，水溶液，vs SHE） =================
+   ox / red：还原方向的左、右两侧物种，[系数, 显示式]；n：电子数；E：标准电极电势(V) */
+var ELECTRODES = [
+  {id:"Li",   name:"Li<sup>+</sup>/Li",        E:-3.040, n:1, conductor:"Li",          solution:"Li<sup>+</sup>",
+   ox:[[1,"Li<sup>+</sup>"]], red:[[1,"Li"]]},
+  {id:"K",    name:"K<sup>+</sup>/K",          E:-2.931, n:1, conductor:"K",           solution:"K<sup>+</sup>",
+   ox:[[1,"K<sup>+</sup>"]], red:[[1,"K"]]},
+  {id:"Na",   name:"Na<sup>+</sup>/Na",        E:-2.710, n:1, conductor:"Na",          solution:"Na<sup>+</sup>",
+   ox:[[1,"Na<sup>+</sup>"]], red:[[1,"Na"]]},
+  {id:"Mg",   name:"Mg<sup>2+</sup>/Mg",       E:-2.372, n:2, conductor:"Mg",          solution:"Mg<sup>2+</sup>",
+   ox:[[1,"Mg<sup>2+</sup>"]], red:[[1,"Mg"]]},
+  {id:"Al",   name:"Al<sup>3+</sup>/Al",       E:-1.662, n:3, conductor:"Al",          solution:"Al<sup>3+</sup>",
+   ox:[[1,"Al<sup>3+</sup>"]], red:[[1,"Al"]]},
+  {id:"Zn",   name:"Zn<sup>2+</sup>/Zn",       E:-0.762, n:2, conductor:"Zn",          solution:"Zn<sup>2+</sup>",
+   ox:[[1,"Zn<sup>2+</sup>"]], red:[[1,"Zn"]]},
+  {id:"Fe",   name:"Fe<sup>2+</sup>/Fe",       E:-0.447, n:2, conductor:"Fe",          solution:"Fe<sup>2+</sup>",
+   ox:[[1,"Fe<sup>2+</sup>"]], red:[[1,"Fe"]]},
+  {id:"PbSO4-Pb", name:"PbSO<sub>4</sub>/Pb（硫酸）", E:-0.359, n:2, conductor:"Pb",  solution:"H<sub>2</sub>SO<sub>4</sub>", sys:"H2SO4",
+   ox:[[1,"PbSO<sub>4</sub>"]], red:[[1,"Pb"],[1,"SO<sub>4</sub><sup>2-</sup>"]]},
+  {id:"Ni",   name:"Ni<sup>2+</sup>/Ni",       E:-0.257, n:2, conductor:"Ni",          solution:"Ni<sup>2+</sup>",
+   ox:[[1,"Ni<sup>2+</sup>"]], red:[[1,"Ni"]]},
+  {id:"Pb",   name:"Pb<sup>2+</sup>/Pb",       E:-0.126, n:2, conductor:"Pb",          solution:"Pb<sup>2+</sup>",
+   ox:[[1,"Pb<sup>2+</sup>"]], red:[[1,"Pb"]]},
+  {id:"H2",   name:"2H<sup>+</sup>/H<sub>2</sub>（氢电极）", E:0.000, n:2, conductor:"Pt（H<sub>2</sub>）", solution:"H<sup>+</sup>",
+   ox:[[2,"H<sup>+</sup>"]], red:[[1,"H<sub>2</sub>"]]},
+  {id:"AgCl", name:"AgCl/Ag（银-氯化银）",     E:0.222,  n:1, conductor:"Ag",          solution:"Cl<sup>-</sup>",
+   ox:[[1,"AgCl"]], red:[[1,"Ag"],[1,"Cl<sup>-</sup>"]]},
+  {id:"Cu",   name:"Cu<sup>2+</sup>/Cu",       E:0.342,  n:2, conductor:"Cu",          solution:"Cu<sup>2+</sup>",
+   ox:[[1,"Cu<sup>2+</sup>"]], red:[[1,"Cu"]]},
+  {id:"I2",   name:"I<sub>2</sub>/I<sup>-</sup>", E:0.536, n:2, conductor:"Pt",        solution:"I<sup>-</sup>",
+   ox:[[1,"I<sub>2</sub>"]], red:[[2,"I<sup>-</sup>"]]},
+  {id:"Fe3",  name:"Fe<sup>3+</sup>/Fe<sup>2+</sup>", E:0.771, n:1, conductor:"Pt",    solution:"Fe<sup>3+</sup>/Fe<sup>2+</sup>",
+   ox:[[1,"Fe<sup>3+</sup>"]], red:[[1,"Fe<sup>2+</sup>"]]},
+  {id:"Ag",   name:"Ag<sup>+</sup>/Ag",        E:0.800,  n:1, conductor:"Ag",          solution:"Ag<sup>+</sup>",
+   ox:[[1,"Ag<sup>+</sup>"]], red:[[1,"Ag"]]},
+  {id:"Br2",  name:"Br<sub>2</sub>/Br<sup>-</sup>", E:1.066, n:2, conductor:"Pt",     solution:"Br<sup>-</sup>",
+   ox:[[1,"Br<sub>2</sub>"]], red:[[2,"Br<sup>-</sup>"]]},
+  {id:"O2",   name:"O<sub>2</sub>/H<sub>2</sub>O（氧电极）", E:1.229, n:4, conductor:"Pt（O<sub>2</sub>）", solution:"H<sup>+</sup>",
+   ox:[[1,"O<sub>2</sub>"],[4,"H<sup>+</sup>"]], red:[[2,"H<sub>2</sub>O"]]},
+  {id:"Cl2",  name:"Cl<sub>2</sub>/Cl<sup>-</sup>", E:1.358, n:2, conductor:"Pt",     solution:"Cl<sup>-</sup>",
+   ox:[[1,"Cl<sub>2</sub>"]], red:[[2,"Cl<sup>-</sup>"]]},
+  {id:"MnO4", name:"MnO<sub>4</sub><sup>-</sup>/Mn<sup>2+</sup>", E:1.507, n:5, conductor:"Pt", solution:"MnO<sub>4</sub><sup>-</sup>/Mn<sup>2+</sup>",
+   ox:[[1,"MnO<sub>4</sub><sup>-</sup>"],[8,"H<sup>+</sup>"]], red:[[1,"Mn<sup>2+</sup>"],[4,"H<sub>2</sub>O"]]},
+  {id:"PbO2", name:"PbO<sub>2</sub>/PbSO<sub>4</sub>（硫酸）", E:1.685, n:2, conductor:"PbO<sub>2</sub>", solution:"H<sub>2</sub>SO<sub>4</sub>", sys:"H2SO4",
+   ox:[[1,"PbO<sub>2</sub>"],[1,"SO<sub>4</sub><sup>2-</sup>"],[4,"H<sup>+</sup>"]], red:[[1,"PbSO<sub>4</sub>"],[2,"H<sub>2</sub>O"]]},
+  {id:"Ce4",  name:"Ce<sup>4+</sup>/Ce<sup>3+</sup>", E:1.720, n:1, conductor:"Pt",   solution:"Ce<sup>4+</sup>/Ce<sup>3+</sup>",
+   ox:[[1,"Ce<sup>4+</sup>"]], red:[[1,"Ce<sup>3+</sup>"]]},
+  {id:"F2",   name:"F<sub>2</sub>/F<sup>-</sup>", E:2.866, n:2, conductor:"Pt",        solution:"F<sup>-</sup>",
+   ox:[[1,"F<sub>2</sub>"]], red:[[2,"F<sup>-</sup>"]]}
+];
+
+var PRESETS = [
+  {name:"丹尼尔电池", neg:"Zn",       pos:"Cu"},
+  {name:"氢氧燃料电池", neg:"H2",     pos:"O2"},
+  {name:"锌银纽扣电池", neg:"Zn",     pos:"Ag"},
+  {name:"铅蓄电池",   neg:"PbSO4-Pb", pos:"PbO2"}
+];
+
+var F_CONST = 96485; /* C/mol */
+
+/* ================= 计算逻辑 ================= */
+function gcd(a,b){ while(b){ var t=a%b; a=b; b=t; } return a; }
+function coefStr(c){ return c===1 ? "" : String(c); }
+function sideStr(list){
+  return list.map(function(it){ return coefStr(it[0]) + it[1]; }).join(" + ");
+}
+/* 半反应：还原方向 */
+function reductionStr(el){
+  var e = (el.n===1 ? "e<sup>−</sup>" : el.n + "e<sup>−</sup>");
+  return sideStr(el.ox) + " + " + e + " → " + sideStr(el.red);
+}
+/* 半反应：氧化方向（负极） */
+function oxidationStr(el){
+  var e = (el.n===1 ? "e<sup>−</sup>" : el.n + "e<sup>−</sup>");
+  return sideStr(el.red) + " → " + sideStr(el.ox) + " + " + e;
+}
+/* 合并两侧同类项 */
+function merge(list){
+  var map = {}, order = [];
+  list.forEach(function(it){
+    if (map[it[1]] === undefined) { map[it[1]] = it[0]; order.push(it[1]); }
+    else { map[it[1]] += it[0]; }
+  });
+  return order.map(function(k){ return [map[k], k]; });
+}
+/* 总反应：把正极还原半反应 ×k1，负极氧化半反应 ×k2，消去相同物种 */
+function overallReaction(neg, pos){
+  var g = gcd(neg.n, pos.n);
+  var k1 = neg.n / g;   /* 正极系数：使两侧电子数相等 */
+  var k2 = pos.n / g;   /* 负极系数 */
+  var left  = merge(scale(pos.ox, k1).concat(scale(neg.red, k2)));
+  var right = merge(scale(pos.red, k1).concat(scale(neg.ox, k2)));
+  /* 两侧共同物种相减 */
+  var keep = function(list, other){
+    var om = {}; other.forEach(function(it){ om[it[1]] = it[0]; });
+    var out = [];
+    list.forEach(function(it){
+      var c = it[0] - (om[it[1]] || 0);
+      if (c > 0) out.push([c, it[1]]);
+    });
+    return out;
+  };
+  var L = keep(left, right), R = keep(right, left);
+  /* 全部系数除以最大公约数 */
+  var all = L.concat(R).map(function(it){ return it[0]; });
+  var gg = all.reduce(function(a,b){ return gcd(a,b); }, all[0]);
+  if (gg > 1) { L = L.map(function(it){ return [it[0]/gg, it[1]]; }); R = R.map(function(it){ return [it[0]/gg, it[1]]; }); }
+  return { left:L, right:R, n: k1 * pos.n };
+}
+function scale(list, k){
+  return list.map(function(it){ return [it[0]*k, it[1]]; });
+}
+/* 电池符号 */
+function cellSymbol(neg, pos){
+  return "(−) " + neg.conductor + " | " + neg.solution + " ‖ " + pos.solution + " | " + pos.conductor + " (+)";
+}
+function fmt(v, d){
+  var s = Math.abs(v).toFixed(d);
+  return (v < 0 ? "−" : "") + s;
+}
+/* 综合计算：给定两个电极 id，返回完整结果（自动判定正负极） */
+function buildCell(negId, posId){
+  var a = ELECTRODES.filter(function(e){ return e.id === negId; })[0];
+  var b = ELECTRODES.filter(function(e){ return e.id === posId; })[0];
+  if (!a || !b || a.id === b.id) return null;
+  var swapped = false;
+  var neg = a, pos = b;
+  if (a.E > b.E) { neg = b; pos = a; swapped = true; }   /* 电势高者为正极 */
+  var E = pos.E - neg.E;
+  var r = overallReaction(neg, pos);
+  return {
+    neg: neg, pos: pos, swapped: swapped, E: E,
+    negEq: oxidationStr(neg), posEq: reductionStr(pos),
+    totalEq: sideStr(r.left) + " → " + sideStr(r.right),
+    n: r.n, dG: -r.n * F_CONST * E / 1000,
+    symbol: cellSymbol(neg, pos)
+  };
+}
+/* LOGIC_END */
+</script>
+
+<script>
+
+/* ================= PowerPoint / 浏览器整体缩放 ================= */
+function fitStage(){
+  var viewport=document.getElementById("viewport");
+  var stage=document.getElementById("stage");
+  if(!viewport || !stage) return;
+  var baseW=1600, baseH=900;
+  var vw=Math.max(1,viewport.clientWidth), vh=Math.max(1,viewport.clientHeight);
+  var s=Math.min(vw/baseW,vh/baseH);
+  var sw=baseW*s, sh=baseH*s;
+  stage.style.transform="scale("+s+")";
+  stage.style.left=((vw-sw)/2)+"px";
+  stage.style.top=((vh-sh)/2)+"px";
+}
+var fitTimer=null;
+window.addEventListener("resize",function(){
+  if(fitTimer) clearTimeout(fitTimer);
+  fitTimer=setTimeout(fitStage,40);
+});
+
+/* ================= 界面渲染 ================= */
+var state = { neg:"Zn", pos:"Cu" };
+var result = null;
+var inlineMsgTimer = null;
+
+function el(id){ return document.getElementById(id); }
+
+function showInlineMsg(message, warn){
+  var box = el("inlineMsg");
+  if(!box) return;
+  if(inlineMsgTimer) clearTimeout(inlineMsgTimer);
+  box.textContent = message;
+  box.classList.toggle("warn", !!warn);
+  inlineMsgTimer = setTimeout(function(){
+    box.textContent = "直接选择正负极，结果会立即更新";
+    box.classList.remove("warn");
+    inlineMsgTimer = null;
+  }, 2600);
+}
+
+function render(cell) {
+  if (!cell) return;
+  result = cell;
+  el("negPlateName").innerHTML = cell.neg.conductor.replace(/（.*?）/g,"");
+  el("posPlateName").innerHTML = cell.pos.conductor.replace(/（.*?）/g,"");
+  el("midIon").innerHTML = cell.neg.solution + " ‖ " + cell.pos.solution;
+  el("midName").innerHTML = cell.neg.name + "（E<sup>⊖</sup>=" + fmt(cell.neg.E,3) + " V）　|　"
+                          + cell.pos.name + "（E<sup>⊖</sup>=" + fmt(cell.pos.E,3) + " V）";
+  el("negWho").innerHTML = cell.neg.name;
+  el("posWho").innerHTML = cell.pos.name;
+  el("negEq").innerHTML = cell.negEq;
+  el("posEq").innerHTML = cell.posEq;
+  el("totalEq").innerHTML = cell.totalEq;
+  el("emfFormula").innerHTML =
+    "E<sup>⊖</sup><sub>cell</sub> = " + fmt(cell.pos.E,3) + " − (" + fmt(cell.neg.E,3) + ")";
+  el("emfVal").innerHTML = "= " + fmt(cell.E,3) + " <small>V</small>";
+
+  var dg = -cell.n * F_CONST * cell.E / 1000;
+  el("emfSub").innerHTML =
+    '<div class="dg-head">n = ' + cell.n + '</div>' +
+    '<div class="dg-line">Δ<sub>r</sub>G<sup>⊖</sup><sub>m</sub> = −nFE<sup>⊖</sup><sub>cell</sub></div>' +
+    '<div class="dg-line">= −' + cell.n + ' × 96485 × ' + fmt(cell.E,3) + ' / 1000</div>' +
+    '<div class="dg-line">= ' + fmt(dg,1) + ' kJ·mol<sup>−1</sup></div>';
+  el("cellSymbol").innerHTML = "电池符号：" + cell.symbol;
+  state.neg = cell.neg.id; state.pos = cell.pos.id;
+}
+
+/* ---------- 页面内直接选择正负极：无弹窗 ---------- */
+var ELECTRODE_MAP = {};
+ELECTRODES.forEach(function(e){ ELECTRODE_MAP[e.id] = e; });
+
+var NEG_SORTED = ELECTRODES.slice().sort(function(a,b){ return a.E - b.E; });
+var POS_SORTED = ELECTRODES.slice().sort(function(a,b){ return b.E - a.E; });
+
+function chemPlain(html){
+  return String(html)
+    .replace(/<sup>3\+<\/sup>/g,"³⁺")
+    .replace(/<sup>2\+<\/sup>/g,"²⁺")
+    .replace(/<sup>\+<\/sup>/g,"⁺")
+    .replace(/<sup>3-<\/sup>/g,"³⁻")
+    .replace(/<sup>2-<\/sup>/g,"²⁻")
+    .replace(/<sup>-<\/sup>/g,"⁻")
+    .replace(/<sub>4<\/sub>/g,"₄")
+    .replace(/<sub>3<\/sub>/g,"₃")
+    .replace(/<sub>2<\/sub>/g,"₂")
+    .replace(/<sub>1<\/sub>/g,"₁")
+    .replace(/<[^>]+>/g,"");
+}
+function optionHTML(e){
+  return '<option value="' + e.id + '">' + chemPlain(e.name) + '　' + fmt(e.E,3) + ' V</option>';
+}
+
+function buildInlineControls(){
+  el("negSelect").innerHTML = NEG_SORTED.map(optionHTML).join("");
+  el("posSelect").innerHTML = POS_SORTED.map(optionHTML).join("");
+
+  el("inlinePresets").innerHTML =
+    '<span class="lab">常用预设：</span>' +
+    PRESETS.map(function(p,i){
+      return '<button type="button" data-i="' + i + '">' + p.name + '</button>';
+    }).join("");
+
+  Array.prototype.forEach.call(el("inlinePresets").querySelectorAll("button"), function(btn){
+    btn.onclick = function(){
+      var p = PRESETS[parseInt(btn.getAttribute("data-i"),10)];
+      applyPair(p.neg, p.pos, true);
+    };
+  });
+
+  el("negSelect").onchange = function(){
+    applyPair(el("negSelect").value, el("posSelect").value, false);
+  };
+  el("posSelect").onchange = function(){
+    applyPair(el("negSelect").value, el("posSelect").value, false);
+  };
+}
+
+function syncInlineControls(){
+  el("negSelect").value = state.neg;
+  el("posSelect").value = state.pos;
+}
+
+function applyPair(negId, posId, fromPreset){
+  if(negId === posId){
+    showInlineMsg("⚠ 正负极不能选择同一种电极材料", true);
+    syncInlineControls();
+    return;
+  }
+
+  var a = ELECTRODE_MAP[negId];
+  var b = ELECTRODE_MAP[posId];
+  if(!a || !b) return;
+
+  var swapped = a.E > b.E;
+  var cell = buildCell(negId, posId);
+  render(cell);
+  syncInlineControls();
+
+  var msg = swapped
+    ? "⚠ 已按电势高低自动交换正负极（电势较高者为正极）"
+    : "✓ 已更新：电势较高者为正极，电势较低者为负极";
+
+  var mix = (a.sys === "H2SO4") !== (b.sys === "H2SO4");
+  if(mix){
+    msg += "；两电极介质不同，实际组装需统一电解质";
+  }
+  showInlineMsg(msg, false);
+}
+
+/* 启动 */
+function initApp(){
+  fitStage();
+  buildInlineControls();
+  render(buildCell(state.neg, state.pos));
+  syncInlineControls();
+}
+initApp();
+setTimeout(fitStage,60);
+</script>
+</body>
+</html>
